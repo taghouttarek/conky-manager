@@ -508,15 +508,16 @@ class ConkyManagerGUI:
         list_frame.pack(fill=tk.BOTH, expand=True, pady=(0, 10))
 
         # Treeview
-        columns = ('name', 'type', 'lua', 'status')
+        columns = ('name', 'type', 'lua', 'autostart', 'status')
         self.tree = ttk.Treeview(list_frame, columns=columns, show='headings', selectmode='browse')
 
         self.tree.heading('name', text='Theme Name')
         self.tree.heading('type', text='Type')
         self.tree.heading('lua', text='Lua')
+        self.tree.heading('autostart', text='Autostart')
         self.tree.heading('status', text='Status')
 
-        self.tree.column('name', width=300)
+        self.tree.column('name', width=250)
         self.tree.column('type', width=100)
         self.tree.column('lua', width=80)
         self.tree.column('status', width=100)
@@ -573,11 +574,14 @@ class ConkyManagerGUI:
         self.tree.delete(*self.tree.get_children())
         self.manager.scan_themes()
 
+        autostart_theme = self.manager.get_autostart_theme()
+
         for theme in self.manager.themes:
             is_running = self.manager.is_theme_running(theme)
             status = "Running" if is_running else ""
             lua = "Yes" if theme['has_lua'] else "No"
-            self.tree.insert('', tk.END, values=(theme['name'], theme['type'], lua, status),
+            is_autostart = "Yes" if (autostart_theme and autostart_theme['name'] == theme['name']) else "No"
+            self.tree.insert('', tk.END, values=(theme['name'], theme['type'], lua, is_autostart, status),
                            tags=('running' if is_running else '',))
 
         self.tree.tag_configure('running', foreground='green')
