@@ -28,6 +28,124 @@ end
 r, g, b = hex2rgb(HTML_color)
 r_border, g_border, b_border = hex2rgb(HTML_color_border)
 
+-- Icon drawing functions
+function draw_icon_network(cr, x, y, size)
+    cairo_set_operator(cr, CAIRO_OPERATOR_SOURCE)
+    cairo_set_source_rgba(cr, r, g, b, transparency_active)
+    cairo_set_line_width(cr, 1.5)
+    -- Signal waves
+    for i = 0, 2 do
+        local radius = size * 0.3 + i * size * 0.25
+        cairo_arc(cr, x, y + size * 0.3, radius, -0.8 * math.pi, -0.2 * math.pi)
+        cairo_stroke(cr)
+    end
+    -- Dot
+    cairo_arc(cr, x, y + size * 0.3, 2, 0, 2 * math.pi)
+    cairo_fill(cr)
+end
+
+function draw_icon_bandwidth(cr, x, y, size)
+    cairo_set_operator(cr, CAIRO_OPERATOR_SOURCE)
+    cairo_set_source_rgba(cr, r, g, b, transparency_active)
+    cairo_set_line_width(cr, 2)
+    -- Arrow up
+    cairo_move_to(cr, x - size * 0.3, y + size * 0.6)
+    cairo_line_to(cr, x - size * 0.3, y + size * 0.2)
+    cairo_line_to(cr, x - size * 0.45, y + size * 0.35)
+    cairo_move_to(cr, x - size * 0.3, y + size * 0.2)
+    cairo_line_to(cr, x - size * 0.15, y + size * 0.35)
+    cairo_stroke(cr)
+    -- Arrow down
+    cairo_move_to(cr, x + size * 0.3, y + size * 0.2)
+    cairo_line_to(cr, x + size * 0.3, y + size * 0.6)
+    cairo_line_to(cr, x + size * 0.15, y + size * 0.45)
+    cairo_move_to(cr, x + size * 0.3, y + size * 0.6)
+    cairo_line_to(cr, x + size * 0.45, y + size * 0.45)
+    cairo_stroke(cr)
+end
+
+function draw_icon_processes(cr, x, y, size)
+    cairo_set_operator(cr, CAIRO_OPERATOR_SOURCE)
+    cairo_set_source_rgba(cr, r, g, b, transparency_active)
+    cairo_set_line_width(cr, 1.5)
+    -- Gear
+    local radius = size * 0.35
+    local teeth = 8
+    for i = 0, teeth - 1 do
+        local angle = (i / teeth) * 2 * math.pi
+        local next_angle = ((i + 0.5) / teeth) * 2 * math.pi
+        local x1 = x + radius * math.cos(angle)
+        local y1 = y + radius * math.sin(angle)
+        local x2 = x + (radius + size * 0.15) * math.cos(angle + 0.1)
+        local y2 = y + (radius + size * 0.15) * math.sin(angle + 0.1)
+        local x3 = x + (radius + size * 0.15) * math.cos(next_angle - 0.1)
+        local y3 = y + (radius + size * 0.15) * math.sin(next_angle - 0.1)
+        local x4 = x + radius * math.cos(next_angle)
+        local y4 = y + radius * math.sin(next_angle)
+        cairo_move_to(cr, x1, y1)
+        cairo_line_to(cr, x2, y2)
+        cairo_line_to(cr, x3, y3)
+        cairo_line_to(cr, x4, y4)
+        cairo_stroke(cr)
+    end
+    -- Center circle
+    cairo_arc(cr, x, y, size * 0.15, 0, 2 * math.pi)
+    cairo_stroke(cr)
+end
+
+function draw_icon_docker(cr, x, y, size)
+    cairo_set_operator(cr, CAIRO_OPERATOR_SOURCE)
+    cairo_set_source_rgba(cr, r, g, b, transparency_active)
+    cairo_set_line_width(cr, 1.5)
+    -- Whale body
+    cairo_move_to(cr, x - size * 0.4, y + size * 0.2)
+    cairo_line_to(cr, x + size * 0.4, y + size * 0.2)
+    cairo_line_to(cr, x + size * 0.45, y + size * 0.35)
+    cairo_line_to(cr, x - size * 0.35, y + size * 0.35)
+    cairo_close_path(cr)
+    cairo_stroke(cr)
+    -- Containers on top
+    for i = 0, 2 do
+        local cx = x - size * 0.25 + i * size * 0.2
+        cairo_rectangle(cr, cx, y, size * 0.15, size * 0.15)
+        cairo_stroke(cr)
+    end
+    -- Water line
+    cairo_move_to(cr, x - size * 0.4, y + size * 0.45)
+    for i = 0, 8 do
+        local wx = x - size * 0.4 + i * size * 0.1
+        local wy = y + size * 0.45 + ((i % 2 == 0) and 0 or size * 0.05)
+        cairo_line_to(cr, wx, wy)
+    end
+    cairo_stroke(cr)
+end
+
+function draw_icon_k8s(cr, x, y, size)
+    cairo_set_operator(cr, CAIRO_OPERATOR_SOURCE)
+    cairo_set_source_rgba(cr, r, g, b, transparency_active)
+    cairo_set_line_width(cr, 1.5)
+    -- Helm wheel
+    local radius = size * 0.35
+    local spokes = 7
+    -- Outer circle
+    cairo_arc(cr, x, y, radius, 0, 2 * math.pi)
+    cairo_stroke(cr)
+    -- Inner circle
+    cairo_arc(cr, x, y, radius * 0.3, 0, 2 * math.pi)
+    cairo_stroke(cr)
+    -- Spokes
+    for i = 0, spokes - 1 do
+        local angle = (i / spokes) * 2 * math.pi
+        cairo_move_to(cr, x + radius * 0.3 * math.cos(angle), y + radius * 0.3 * math.sin(angle))
+        cairo_line_to(cr, x + radius * math.cos(angle), y + radius * math.sin(angle))
+        cairo_stroke(cr)
+    end
+    -- Handle at top
+    cairo_move_to(cr, x, y - radius)
+    cairo_line_to(cr, x, y - radius - size * 0.15)
+    cairo_stroke(cr)
+end
+
 function draw_square(cr, pos_x, pos_y, rectangle_x, rectangle_y, trans)
     cairo_set_operator(cr, operator[mode])
     cairo_set_source_rgba(cr, r, g, b, trans)
@@ -56,8 +174,9 @@ function draw_network_info(cr, x, y)
     -- Background square
     draw_square(cr, x, y, w, h, transparency_bg)
 
-    -- Title
-    draw_text(cr, x + 10, y + 20, "NETWORK", 12, transparency_value)
+    -- Icon and Title
+    draw_icon_network(cr, x + 15, y + 15, 20)
+    draw_text(cr, x + 35, y + 20, "NETWORK", 12, transparency_value)
 
     -- Interface
     local iface = conky_parse('${if_existing /sys/class/net/wlp2s0}wlp2s0${else}enp1s0f0${endif}')
@@ -84,8 +203,9 @@ function draw_network_bandwidth(cr, x, y)
     -- Background square
     draw_square(cr, x, y, w, h, transparency_bg)
 
-    -- Title
-    draw_text(cr, x + 10, y + 20, "BANDWIDTH", 12, transparency_value)
+    -- Icon and Title
+    draw_icon_bandwidth(cr, x + 15, y + 15, 20)
+    draw_text(cr, x + 35, y + 20, "BANDWIDTH", 12, transparency_value)
 
     -- Download
     local down = conky_parse('${downspeed wlp2s0}')
@@ -110,8 +230,9 @@ function draw_top_processes(cr, x, y)
     -- Background square
     draw_square(cr, x, y, w, h, transparency_bg)
 
-    -- Title
-    draw_text(cr, x + 10, y + 20, "TOP PROCESSES", 12, transparency_value)
+    -- Icon and Title
+    draw_icon_processes(cr, x + 15, y + 15, 20)
+    draw_text(cr, x + 35, y + 20, "TOP PROCESSES", 12, transparency_value)
 
     -- Process list
     local proc_y = y + 45
@@ -138,8 +259,9 @@ function draw_docker_containers(cr, x, y)
     -- Background square
     draw_square(cr, x, y, w, h, transparency_bg)
 
-    -- Title
-    draw_text(cr, x + 10, y + 20, "DOCKER", 12, transparency_value)
+    -- Icon and Title
+    draw_icon_docker(cr, x + 15, y + 15, 20)
+    draw_text(cr, x + 35, y + 20, "DOCKER", 12, transparency_value)
 
     -- Container list
     local containers = conky_parse('${exec docker ps --format "{{.Names}}" 2>/dev/null || echo ""}')
@@ -179,8 +301,9 @@ function draw_k8s_context(cr, x, y)
     -- Background square
     draw_square(cr, x, y, w, h, transparency_bg)
 
-    -- Title
-    draw_text(cr, x + 10, y + 20, "K8S", 12, transparency_value)
+    -- Icon and Title
+    draw_icon_k8s(cr, x + 15, y + 15, 20)
+    draw_text(cr, x + 35, y + 20, "K8S", 12, transparency_value)
 
     -- Current context
     local context = conky_parse('${exec kubectl config current-context 2>/dev/null || echo "N/A"}')
