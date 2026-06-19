@@ -199,7 +199,7 @@ class ConkyManager:
             return True
 
         try:
-            cmd = ['conky', '-c', config_path, '-d']
+            cmd = ['conky', '-c', config_path, '-d', '-m', '0']
             subprocess.Popen(cmd, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
             if 'running_themes' not in self.settings:
                 self.settings['running_themes'] = []
@@ -257,6 +257,13 @@ class ConkyManager:
             return result.returncode == 0
         except (subprocess.TimeoutExpired, Exception):
             return False
+
+    def find_theme_by_name(self, name):
+        """Find a theme by name"""
+        for theme in self.themes:
+            if theme['name'] == name:
+                return theme
+        return None
 
     def import_archive(self, archive_path, theme_name=None):
         """Import a theme from an archive"""
@@ -389,7 +396,7 @@ class ConkyManager:
             content = f"""[Desktop Entry]
 Type=Application
 Name=Conky {theme['name']}
-Exec=/usr/bin/conky -c {theme['config']}
+Exec=/usr/bin/conky -c {theme['config']} -m 0
 Hidden=false
 NoDisplay=false
 X-GNOME-Autostart-enabled=true
@@ -550,6 +557,9 @@ class ConkyManagerGUI:
         self.stop_btn = ttk.Button(button_frame, text="Stop All", command=self.stop_conky)
         self.stop_btn.pack(side=tk.LEFT, padx=2)
 
+        self.restart_btn = ttk.Button(button_frame, text="Restart", command=self.restart_all)
+        self.restart_btn.pack(side=tk.LEFT, padx=2)
+
         ttk.Separator(button_frame, orient=tk.VERTICAL).pack(side=tk.LEFT, fill=tk.Y, padx=5)
 
         self.edit_btn = ttk.Button(button_frame, text="Edit", command=self.edit_theme, state=tk.DISABLED)
@@ -676,6 +686,17 @@ class ConkyManagerGUI:
         self.update_status()
         self.refresh_theme_list()
         self.stop_theme_btn.config(state=tk.DISABLED)
+
+    def restart_all(self):
+        """Restart all currently running themes"""
+        running = list(self.manager.settings.get('running_themes', []))
+        self.manager.stop_conky()
+        for theme_name in running:
+            theme = self.manager.find_theme_by_name(theme_name)
+            if theme:
+                self.manager.start_conky(theme)
+        self.update_status()
+        self.refresh_theme_list()
 
     def edit_theme(self):
         """Edit the selected theme"""

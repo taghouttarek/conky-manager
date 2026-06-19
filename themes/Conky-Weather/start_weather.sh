@@ -2,4 +2,4 @@
 
 cd ~/.config/conky/Conky-Weather/
 
-conky -c conky_config
+conky -c conky_config -m 0
