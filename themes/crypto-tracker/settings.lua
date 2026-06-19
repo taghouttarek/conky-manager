@@ -96,22 +96,24 @@ function draw_text_right(cr, x, y, text, font_size, trans)
 end
 
 function draw_icon_crypto(cr, x, y, size)
-    cairo_set_operator(cr, operator[mode])
+    cairo_set_operator(cr, operator_transpose[mode])
     cairo_set_source_rgba(cr, r, g, b, transparency_value)
     cairo_set_line_width(cr, 1.5)
-    -- Diamond shape
-    local half = size * 0.35
-    cairo_move_to(cr, x, y - half)
-    cairo_line_to(cr, x + half, y)
-    cairo_line_to(cr, x, y + half)
-    cairo_line_to(cr, x - half, y)
-    cairo_close_path(cr)
+    -- Coin circle (filled)
+    local radius = size * 0.35
+    cairo_arc(cr, x, y, radius, 0, 2 * math.pi)
+    cairo_fill(cr)
+    -- Inner circle outline
+    cairo_arc(cr, x, y, radius * 0.6, 0, 2 * math.pi)
     cairo_stroke(cr)
-    -- Inner lines
-    cairo_move_to(cr, x - half, y)
-    cairo_line_to(cr, x + half, y)
-    cairo_move_to(cr, x, y - half)
-    cairo_line_to(cr, x, y + half)
+    -- Dollar sign vertical line
+    cairo_move_to(cr, x, y - radius * 0.4)
+    cairo_line_to(cr, x, y + radius * 0.4)
+    cairo_stroke(cr)
+    -- Dollar sign curves
+    cairo_arc(cr, x, y - radius * 0.15, radius * 0.25, -0.8 * math.pi, 0.3 * math.pi)
+    cairo_stroke(cr)
+    cairo_arc(cr, x, y + radius * 0.15, radius * 0.25, 0.2 * math.pi, 1.3 * math.pi)
     cairo_stroke(cr)
 end
 
