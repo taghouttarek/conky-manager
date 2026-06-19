@@ -582,6 +582,13 @@ class ConkyManagerGUI:
 
     def refresh_theme_list(self):
         """Refresh the theme list"""
+        # Save current selection
+        selected_name = None
+        selection = self.tree.selection()
+        if selection:
+            item = self.tree.item(selection[0])
+            selected_name = item['values'][0]
+
         self.tree.delete(*self.tree.get_children())
         self.manager.scan_themes()
 
@@ -594,6 +601,15 @@ class ConkyManagerGUI:
                            tags=('running' if is_running else '',))
 
         self.tree.tag_configure('running', foreground='green')
+
+        # Restore selection
+        if selected_name:
+            for item in self.tree.get_children():
+                values = self.tree.item(item, 'values')
+                if values[0] == selected_name:
+                    self.tree.selection_set(item)
+                    self.tree.see(item)
+                    break
 
     def on_theme_select(self, event):
         """Handle theme selection"""
