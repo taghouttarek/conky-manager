@@ -90,12 +90,16 @@ end
 ### Icon Pattern
 ```lua
 function draw_icon_<name>(cr, x, y, size)
-    cairo_set_operator(cr, operator[mode])
+    cairo_set_operator(cr, operator_transpose[mode])  -- CRITICAL: use transpose for dark icons
     cairo_set_source_rgba(cr, r, g, b, transparency_value)
     cairo_set_line_width(cr, 1.5)
-    -- Draw icon shape here (arcs, lines, etc.)
+    -- Draw icon shape here (arcs, lines, filled shapes, etc.)
+    -- For filled shapes: use cairo_fill(cr)
+    -- For outlines: use cairo_stroke(cr)
 end
 ```
+
+**IMPORTANT**: Icons MUST use `operator_transpose[mode]` (not `operator[mode]`) to appear dark on the semi-transparent background. Using `operator[mode]` draws white which is invisible.
 
 ## Widget Sizes
 - Width: 220-250px
