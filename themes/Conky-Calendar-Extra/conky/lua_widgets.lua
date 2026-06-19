@@ -289,11 +289,13 @@ function draw_function(cr)
     title = string.sub(title, 1, 18) .. ".."
   end
 
-  -- Format position and duration
-  local pos_min = math.floor((tonumber(position) or 0) / 60)
-  local pos_sec = math.floor((tonumber(position) or 0) % 60)
-  local dur_min = math.floor(((tonumber(duration) or 0) / 1000000) / 60)
-  local dur_sec = math.floor(((tonumber(duration) or 0) / 1000000) % 60)
+  -- Format position (seconds) and duration (microseconds)
+  local pos_val = tonumber(position) or 0
+  local dur_val = (tonumber(duration) or 0) / 1000000
+  local pos_min = math.floor(pos_val / 60)
+  local pos_sec = math.floor(pos_val % 60)
+  local dur_min = math.floor(dur_val / 60)
+  local dur_sec = math.floor(dur_val % 60)
   local time_str = string.format("%d:%02d / %d:%02d", pos_min, pos_sec, dur_min, dur_sec)
 
   -- Draw music info
@@ -317,38 +319,23 @@ function draw_function(cr)
     cairo_show_text(cr, title)
   end
 
-  -- Controls text
-  cairo_set_source_rgba(cr, r_c,g_c,b_c,transparency_active)
-  cairo_set_font_size(cr, 9)
-  cairo_move_to(cr, x-40, music_y + 50)
-  if status == "Playing" then
-    cairo_show_text(cr, "|| Pause  >> Next  << Prev")
-  else
-    cairo_show_text(cr, "|> Play   >> Next  << Prev")
-  end
-
   -- Time
   cairo_set_source_rgba(cr, r,g,b,transparency)
-  cairo_move_to(cr, x-40, music_y + 65)
+  cairo_move_to(cr, x-40, music_y + 50)
   cairo_show_text(cr, time_str)
 
   -- Progress bar
-  if position ~= "0" and duration ~= "0" then
-    local pos_sec_val = tonumber(position) or 0
-    local dur_sec_val = (tonumber(duration) or 0) / 1000000
-    local progress = 0
-    if dur_sec_val > 0 then
-      progress = pos_sec_val / dur_sec_val
-    end
+  if dur_val > 0 then
+    local progress = pos_val / dur_val
 
     -- Progress bar background
     cairo_set_source_rgba(cr, r,g,b,0.2)
-    cairo_rectangle(cr, x-40, music_y + 75, 80, 4)
+    cairo_rectangle(cr, x-40, music_y + 60, 80, 4)
     cairo_fill(cr)
 
     -- Progress bar fill
     cairo_set_source_rgba(cr, r_c,g_c,b_c,transparency_active)
-    cairo_rectangle(cr, x-40, music_y + 75, 80 * progress, 4)
+    cairo_rectangle(cr, x-40, music_y + 60, 80 * progress, 4)
     cairo_fill(cr)
   end
 end
