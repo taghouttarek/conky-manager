@@ -170,7 +170,8 @@ end
 
 function vertical_bars(cr,w,h,x,y,conky_value)
     cairo_set_source_rgba(cr, r,g,b,transparency)
-    local percent_per_block = 70 / 10
+    local max_temp = 100
+    local percent_per_block = max_temp / 10
     if conky_value == nil then conky_value = 0 end
     local number_of_filled_blocks = math.floor((conky_value/percent_per_block)+0.5)
     
