@@ -383,12 +383,12 @@ class ConkyManager:
 
     def set_autostart(self, theme, enabled=True):
         """Set or remove autostart for a theme"""
-        autostart_file = AUTOSTART_DIR / "conky.desktop"
+        autostart_file = AUTOSTART_DIR / f"conky-{theme['name']}.desktop"
 
         if enabled:
             content = f"""[Desktop Entry]
 Type=Application
-Name=Conky
+Name=Conky {theme['name']}
 Exec=/usr/bin/conky -c {theme['config']}
 Hidden=false
 NoDisplay=false
@@ -405,28 +405,33 @@ X-GNOME-Autostart-enabled=true
         else:
             if autostart_file.exists():
                 autostart_file.unlink()
-                self.log("Autostart removed")
+                self.log(f"Autostart removed for: {theme['name']}")
                 return True
             return True
 
-    def get_autostart_theme(self):
-        """Get the current autostart theme"""
-        autostart_file = AUTOSTART_DIR / "conky.desktop"
-        if autostart_file.exists():
-            try:
-                with open(autostart_file, 'r') as f:
-                    content = f.read()
-                    # Extract config path from Exec line
-                    for line in content.split('\n'):
-                        if line.startswith('Exec='):
-                            config_path = line.split('-c ')[-1].strip()
-                            # Find theme with this config
-                            for theme in self.themes:
-                                if theme['config'] == config_path:
-                                    return theme
-            except Exception:
-                pass
-        return None
+    def get_autostart_themes(self):
+        """Get all themes with autostart enabled"""
+        autostart_themes = []
+        if AUTOSTART_DIR.exists():
+            for f in AUTOSTART_DIR.glob("conky-*.desktop"):
+                try:
+                    with open(f, 'r') as file:
+                        content = file.read()
+                        for line in content.split('\n'):
+                            if line.startswith('Exec='):
+                                config_path = line.split('-c ')[-1].strip()
+                                for theme in self.themes:
+                                    if theme['config'] == config_path:
+                                        autostart_themes.append(theme)
+                                break
+                except Exception:
+                    pass
+        return autostart_themes
+
+    def is_autostart(self, theme):
+        """Check if a theme has autostart enabled"""
+        autostart_themes = self.get_autostart_themes()
+        return any(t['name'] == theme['name'] for t in autostart_themes)
 
     def open_theme_folder(self, theme):
         """Open theme folder in file manager"""
@@ -574,13 +579,11 @@ class ConkyManagerGUI:
         self.tree.delete(*self.tree.get_children())
         self.manager.scan_themes()
 
-        autostart_theme = self.manager.get_autostart_theme()
-
         for theme in self.manager.themes:
             is_running = self.manager.is_theme_running(theme)
             status = "Running" if is_running else ""
             lua = "Yes" if theme['has_lua'] else "No"
-            is_autostart = "Yes" if (autostart_theme and autostart_theme['name'] == theme['name']) else "No"
+            is_autostart = "Yes" if self.manager.is_autostart(theme) else "No"
             self.tree.insert('', tk.END, values=(theme['name'], theme['type'], lua, is_autostart, status),
                            tags=('running' if is_running else '',))
 
@@ -606,8 +609,7 @@ class ConkyManagerGUI:
                 self.stop_theme_btn.config(state=tk.NORMAL if is_running else tk.DISABLED)
 
                 # Check if autostart
-                autostart_theme = self.manager.get_autostart_theme()
-                self.autostart_var.set(autostart_theme and autostart_theme['name'] == theme_name)
+                self.autostart_var.set(self.manager.is_autostart(self.selected_theme))
 
                 # Show info
                 self.show_theme_info(self.selected_theme)
