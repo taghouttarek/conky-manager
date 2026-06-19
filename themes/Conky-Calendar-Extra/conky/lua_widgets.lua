@@ -213,7 +213,7 @@ end
 function draw_function(cr)
   local w,h=conky_window.width,conky_window.height	
   cairo_set_line_width(cr, 3)
-  cairo_set_font_size(cr,12)
+  cairo_set_font_size(cr,8)
   cairo_select_font_face (cr, "Dejavu Sans Condensed", CAIRO_FONT_SLANT_NORMAL, CAIRO_FONT_WEIGHT_NORMAL);
   
 -- Number of weeks per year --- 
@@ -257,19 +257,19 @@ function draw_function(cr)
   angle1 = 0.0  * (math.pi/180.0);  
   angle2 = 360.0 * (math.pi/180.0);
   
-  create_circle_hdd(cr,(w-x_rel_pos)/2-60,(h-y_rel_pos)/2-80,20,3, 20, 3, 100-tonumber(conky_parse("${fs_free_perc /}")))
-  create_circle_hdd(cr,(w-x_rel_pos)/2+60,(h-y_rel_pos)/2-80,20,3, 20, 3,100-tonumber(conky_parse("${fs_free_perc /home}")))
+  create_circle_hdd(cr,(w-x_rel_pos)/2-40,(h-y_rel_pos)/2-60,20,3, 15, 3, 100-tonumber(conky_parse("${fs_free_perc /}")))
+  create_circle_hdd(cr,(w-x_rel_pos)/2+40,(h-y_rel_pos)/2-60,20,3, 15, 3,100-tonumber(conky_parse("${fs_free_perc /home}")))
   
 
-  cairo_arc(cr,(w-x_rel_pos)/2-60,(h-y_rel_pos)/2-80,14,0,2*math.pi)
+  cairo_arc(cr,(w-x_rel_pos)/2-40,(h-y_rel_pos)/2-60,10,0,2*math.pi)
   cairo_fill(cr)
-  cairo_arc(cr,(w-x_rel_pos)/2+60,(h-y_rel_pos)/2-80,14,0,2*math.pi)
+  cairo_arc(cr,(w-x_rel_pos)/2+40,(h-y_rel_pos)/2-60,10,0,2*math.pi)
   cairo_fill(cr)
   
   cairo_set_operator(cr, CAIRO_OPERATOR_CLEAR)
-  cairo_move_to(cr, (w-x_rel_pos)/2-64, (h-y_rel_pos)/2-75)
+  cairo_move_to(cr, (w-x_rel_pos)/2-44, (h-y_rel_pos)/2-57)
   cairo_show_text(cr,"R")
-  cairo_move_to(cr, (w-x_rel_pos)/2+56, (h-y_rel_pos)/2-75)
+  cairo_move_to(cr, (w-x_rel_pos)/2+36, (h-y_rel_pos)/2-57)
   cairo_show_text(cr,"H")
   cairo_set_operator(cr, CAIRO_OPERATOR_OVER)
   
