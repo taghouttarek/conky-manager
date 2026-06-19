@@ -239,16 +239,22 @@ end
 function draw_function(cr)
     local w, h = conky_window.width, conky_window.height
 
-    -- Left side (Network Info)
-    draw_network_info(cr, 30, 50)
+    -- Left side (centered vertically)
+    local left_x = 30
+    local total_left_height = 120 + 150 -- bandwidth + network info
+    local left_y_start = (h - total_left_height) / 2
 
-    -- Center (Bandwidth)
-    draw_network_bandwidth(cr, 250, 50)
+    draw_network_bandwidth(cr, left_x, left_y_start)
+    draw_network_info(cr, left_x, left_y_start + 140)
 
-    -- Right side
-    draw_top_processes(cr, w - 310, 50)
-    draw_docker_containers(cr, w - 310, 270)
-    draw_k8s_context(cr, w - 310, 450)
+    -- Right side (centered vertically)
+    local right_x = w - 310
+    local total_right_height = 200 + 160 + 130 -- processes + docker + k8s
+    local right_y_start = (h - total_right_height) / 2
+
+    draw_top_processes(cr, right_x, right_y_start)
+    draw_docker_containers(cr, right_x, right_y_start + 220)
+    draw_k8s_context(cr, right_x, right_y_start + 400)
 end
 
 function conky_start_widgets()
