@@ -426,7 +426,7 @@ X-GNOME-Autostart-enabled=true
                         content = file.read()
                         for line in content.split('\n'):
                             if line.startswith('Exec='):
-                                config_path = line.split('-c ')[-1].strip()
+                                config_path = line.split('-c ')[-1].strip().split(' -m ')[0]
                                 for theme in self.themes:
                                     if theme['config'] == config_path:
                                         autostart_themes.append(theme)
@@ -612,13 +612,24 @@ class ConkyManagerGUI:
 
         self.tree.tag_configure('running', foreground='green')
 
-        # Restore selection
+        # Restore selection and buttons
         if selected_name:
             for item in self.tree.get_children():
                 values = self.tree.item(item, 'values')
                 if values[0] == selected_name:
                     self.tree.selection_set(item)
                     self.tree.see(item)
+                    # Re-enable buttons directly
+                    self.selected_theme = next((t for t in self.manager.themes if t['name'] == selected_name), None)
+                    if self.selected_theme:
+                        self.run_btn.config(state=tk.NORMAL)
+                        self.edit_btn.config(state=tk.NORMAL)
+                        self.folder_btn.config(state=tk.NORMAL)
+                        self.delete_btn.config(state=tk.NORMAL)
+                        self.autostart_check.config(state=tk.NORMAL)
+                        is_running = self.manager.is_theme_running(self.selected_theme)
+                        self.stop_theme_btn.config(state=tk.NORMAL if is_running else tk.DISABLED)
+                        self.autostart_var.set(self.manager.is_autostart(self.selected_theme))
                     break
 
     def on_theme_select(self, event):
