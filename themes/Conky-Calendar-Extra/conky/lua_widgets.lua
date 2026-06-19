@@ -11,11 +11,18 @@ graphic_card_model = "Type Your Model Here"
 -- Show graphic card temperature? (Yes/No)
 enable_graphic_card_temperature_sensor= "No" 
 
--- Colors
+-- Colors (matching Revisited-2)
 HTML_colors = "#FFFFFF"
 HTML_colors_current = "#FFFFFF"
-transparency = 0.3 -- Background circles transparency (0 to 1)
-transparency_active = 0.9 -- Active/current elements transparency (0 to 1)
+transparency = 0.6 -- Background transparency (matching Revisited-2)
+transparency_active = 0.9 -- Active/current elements transparency
+transparency_border = 0.1
+
+-- Mode (1 = background, 2 = no background)
+mode = 1
+
+-- Border size (matching Revisited-2)
+border_size = 4
 
 -- Scaled relative position from middle. Positive x and y means left and up, negative x and y means right and down.
 x_rel_pos = 0
@@ -78,21 +85,18 @@ y_rel_pos = 0
 
 require 'cairo'
 
+operator = {CAIRO_OPERATOR_SOURCE, CAIRO_OPERATOR_CLEAR}
+operator_transpose = {CAIRO_OPERATOR_CLEAR, CAIRO_OPERATOR_SOURCE}
+
 function hex2rgb(hex)
   hex = hex:gsub("#","")
-  return tonumber("0x"..hex:sub(1,2)), tonumber("0x"..hex:sub(3,4)), tonumber("0x"..hex:sub(5,6))
+  return (tonumber("0x"..hex:sub(1,2))/255), (tonumber("0x"..hex:sub(3,4))/255), tonumber(("0x"..hex:sub(5,6))/255)
 end
 
 r,g,b = hex2rgb(HTML_colors)
 r_c,g_c,b_c = hex2rgb(HTML_colors_current)
 
-r = r/255
-g = g/255
-b = b/255
-
-r_c = r_c/255
-g_c = g_c/255
-b_c = b_c/255
+r_border, g_border, b_border = hex2rgb(HTML_colors)
 
 if enable_graphic_card_temperature_sensor == "Yes" then
   number_of_physical_CPU_cores = number_of_physical_CPU_cores + 1
@@ -118,7 +122,7 @@ function create_circle_hdd(cr,w,h,elements,distance_between_blocks, radius, line
     cairo_set_source_rgba(cr, r,g,b,transparency)
   end   
 end
-function create_circle(cr,w,h, elements, distance_between_blocks, two_number_degree, radius, line_width, operator, radius_shift_for_text, current, days, shift_days_distance)
+function create_circle(cr,w,h, elements, distance_between_blocks, two_number_degree, radius, line_width, draw_operator, radius_shift_for_text, current, days, shift_days_distance)
   elements = tonumber(elements) or 12
   cairo_set_line_width(cr, line_width)
   cairo_set_source_rgba(cr, r,g,b,transparency)
@@ -137,7 +141,7 @@ function create_circle(cr,w,h, elements, distance_between_blocks, two_number_deg
   end 
   
   start_angel = 270
-  cairo_set_operator(cr, operator)
+  cairo_set_operator(cr, draw_operator)
   
   for i=1, elements do
     if i == current then
@@ -169,6 +173,7 @@ end
 
 
 function vertical_bars(cr,w,h,x,y,conky_value)
+    cairo_set_operator(cr, operator_transpose[mode])
     cairo_set_source_rgba(cr, r,g,b,transparency)
     local max_temp = 100
     local percent_per_block = max_temp / 10
@@ -187,7 +192,7 @@ function vertical_bars(cr,w,h,x,y,conky_value)
 end
 
 function draw_circles(cr, x_start,y_start,radius, angle_1, angle_2, free_perc, angle_step)
-	 cairo_select_font_face (cr, "Dejavu Sans Condensed", CAIRO_FONT_SLANT_NORMAL, CAIRO_FONT_WEIGHT_NORMAL);
+	 cairo_select_font_face (cr, "Dejavu Sans Book", CAIRO_FONT_SLANT_NORMAL, CAIRO_FONT_WEIGHT_NORMAL);
 	 local number_of_circles = 360 / angle_step
 	 local angle_start = 90
 	 cairo_set_line_width(cr, 1)
@@ -214,7 +219,7 @@ function draw_function(cr)
   local w,h=conky_window.width,conky_window.height	
   cairo_set_line_width(cr, 3)
   cairo_set_font_size(cr,12)
-  cairo_select_font_face (cr, "Dejavu Sans Condensed", CAIRO_FONT_SLANT_NORMAL, CAIRO_FONT_WEIGHT_NORMAL);
+  cairo_select_font_face (cr, "Dejavu Sans Book", CAIRO_FONT_SLANT_NORMAL, CAIRO_FONT_WEIGHT_NORMAL);
   
 -- Number of weeks per year --- 
   create_circle(cr,w-x_rel_pos,h-y_rel_pos, 52.0, 2, 3.5, 225, 3, CAIRO_OPERATOR_OVER, 4, tonumber(conky_parse('${exec date +%V}')), '')
@@ -264,19 +269,67 @@ function draw_function(cr)
   cairo_show_text(cr,"H")
   cairo_set_operator(cr, CAIRO_OPERATOR_OVER)
   
---- Temperatures ---
+--- Music Player ---
 
   local x = (w-x_rel_pos)/2
-  local temp_val = tonumber(conky_parse("${exec sensors|grep 'Tctl:'|awk '{print $2}'| cut -b2,3,4,5}"))
-  if temp_val == nil then temp_val = 0 end
+  local music_y = (h-y_rel_pos)/2 + 50
 
-  vertical_bars(cr,x-8,h-y_rel_pos,64,75,temp_val)
-  cairo_arc(cr,x-1,(h-y_rel_pos)/2+50,6,0,2*math.pi)
-  cairo_fill(cr)
-  cairo_set_operator(cr, CAIRO_OPERATOR_CLEAR)
-  cairo_move_to(cr,x-8,(h-y_rel_pos)/2+53)
-  cairo_show_text(cr,"CPU")
-  cairo_set_operator(cr, CAIRO_OPERATOR_OVER)
+  -- Get music info
+  local artist = conky_parse('${exec playerctl metadata artist 2>/dev/null || echo ""}')
+  local title = conky_parse('${exec playerctl metadata title 2>/dev/null || echo ""}')
+  local status = conky_parse('${exec playerctl status 2>/dev/null || echo "Stopped"}')
+  local position = conky_parse('${exec playerctl position 2>/dev/null || echo "0"}')
+  local duration = conky_parse('${exec playerctl metadata mpris:length 2>/dev/null || echo "0"}')
+
+  -- Truncate long strings
+  if string.len(artist) > 20 then
+    artist = string.sub(artist, 1, 18) .. ".."
+  end
+  if string.len(title) > 20 then
+    title = string.sub(title, 1, 18) .. ".."
+  end
+
+  -- Draw music info
+  cairo_set_operator(cr, CAIRO_OPERATOR_SOURCE)
+  cairo_set_source_rgba(cr, r,g,b,transparency_active)
+  cairo_set_font_size(cr, 10)
+
+  -- Status
+  cairo_move_to(cr, x-40, music_y)
+  cairo_show_text(cr, status)
+
+  -- Artist
+  if artist ~= "" then
+    cairo_move_to(cr, x-40, music_y + 15)
+    cairo_show_text(cr, artist)
+  end
+
+  -- Title
+  if title ~= "" then
+    cairo_move_to(cr, x-40, music_y + 30)
+    cairo_show_text(cr, title)
+  end
+
+  -- Progress bar
+  if position ~= "0" and duration ~= "0" then
+    local pos_sec = tonumber(position) or 0
+    local dur_sec = (tonumber(duration) or 0) / 1000000
+    local progress = 0
+    if dur_sec > 0 then
+      progress = pos_sec / dur_sec
+    end
+
+    -- Progress bar background
+    cairo_set_operator(cr, CAIRO_OPERATOR_SOURCE)
+    cairo_set_source_rgba(cr, r,g,b,0.2)
+    cairo_rectangle(cr, x-40, music_y + 40, 80, 4)
+    cairo_fill(cr)
+
+    -- Progress bar fill
+    cairo_set_source_rgba(cr, r_c,g_c,b_c,transparency_active)
+    cairo_rectangle(cr, x-40, music_y + 40, 80 * progress, 4)
+    cairo_fill(cr)
+  end
 end
 
 function conky_start_widgets()
