@@ -178,7 +178,7 @@ function vertical_bars(cr,w,h,x,y,conky_value)
       if number_of_filled_blocks >= i then
 	cairo_set_source_rgba(cr, r_c,g_c,b_c,transparency_active)
       end
-      cairo_rectangle(cr, w, h/2+y-i*3,8,2)
+      cairo_rectangle(cr, w, h/2+y-i*5,15,4)
       cairo_fill(cr)
       cairo_set_source_rgba(cr, r,g,b,transparency)
     end
@@ -269,11 +269,11 @@ function draw_function(cr)
   local temp_val = tonumber(conky_parse("${exec sensors|grep 'Tctl:'|awk '{print $2}'| cut -b2,3,4,5}"))
   if temp_val == nil then temp_val = 0 end
 
-  vertical_bars(cr,x-5,h-y_rel_pos,64,75,temp_val)
-  cairo_arc(cr,x-1,(h-y_rel_pos)/2+50,4,0,2*math.pi)
+  vertical_bars(cr,x-8,h-y_rel_pos,64,75,temp_val)
+  cairo_arc(cr,x-1,(h-y_rel_pos)/2+50,6,0,2*math.pi)
   cairo_fill(cr)
   cairo_set_operator(cr, CAIRO_OPERATOR_CLEAR)
-  cairo_move_to(cr,x-4,(h-y_rel_pos)/2+53)
+  cairo_move_to(cr,x-8,(h-y_rel_pos)/2+53)
   cairo_show_text(cr,"CPU")
   cairo_set_operator(cr, CAIRO_OPERATOR_OVER)
 end
