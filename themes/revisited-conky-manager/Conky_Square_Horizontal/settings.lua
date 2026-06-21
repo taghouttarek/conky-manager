@@ -96,6 +96,7 @@ gap_x_distance = 10
 
 
 require 'cairo'
+require 'cairo_xlib'
 
 operator = {CAIRO_OPERATOR_SOURCE,
 			CAIRO_OPERATOR_CLEAR

@@ -84,6 +84,7 @@ y_rel_pos = 0
 
 
 require 'cairo'
+require 'cairo_xlib'
 
 operator = {CAIRO_OPERATOR_SOURCE, CAIRO_OPERATOR_CLEAR}
 operator_transpose = {CAIRO_OPERATOR_CLEAR, CAIRO_OPERATOR_SOURCE}

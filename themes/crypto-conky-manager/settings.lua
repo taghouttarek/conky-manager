@@ -26,6 +26,7 @@ Label_font = 12
 Mcap_font = 12
 -- ###Dont change code below###
 require 'cairo'
+require 'cairo_xlib'
 assert(os.setlocale("en_US.utf8", "numeric"))
 
 local script = os.getenv("HOME") .. "/.config/conky/crypto-conky-manager/crypto_price.py"

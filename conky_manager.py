@@ -1031,7 +1031,7 @@ class ConkyManagerGUI:
                                 shutil.copytree(str(theme_dir), str(dst))
 
                     self.has_update = False
-                    self.update_btn.config(text="Update")
+                    self.update_btn.configure(text="Update")
                     messagebox.showinfo("Update", f"Updated to v{remote_version}!\n\nBackup saved to: {backup_dir}\n\nRun 'Restart Manager' to reload.")
                 else:
                     messagebox.showerror("Update Error", f"Pull failed:\n{result.stderr}")
