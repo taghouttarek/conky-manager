@@ -28,7 +28,7 @@ Mcap_font = 12
 require 'cairo'
 assert(os.setlocale("en_US.utf8", "numeric"))
 
-local script = os.getenv("HOME") .. "/.config/conky/crypto-tracker/crypto_price.py"
+local script = os.getenv("HOME") .. "/.config/conky/crypto-conky-manager/crypto_price.py"
 local cmd_base = "python3 " .. script .. " --coin " .. coin_id .. " --currency " .. currency
 
 operator = {CAIRO_OPERATOR_SOURCE, CAIRO_OPERATOR_CLEAR}
