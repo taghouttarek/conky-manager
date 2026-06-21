@@ -52,6 +52,19 @@ function get_val(flag)
     return ""
 end
 
+function get_all_data()
+    local raw = conky_parse("${exec " .. cmd_base .. " --get_all 2>/dev/null}")
+    if not raw or raw == "" then return nil end
+    local result = {}
+    for line in raw:gmatch("[^\n]+") do
+        local key, val = line:match("^(%w+):(.*)$")
+        if key and val then
+            result[key] = val
+        end
+    end
+    return result
+end
+
 function parse_chart(csv)
     local prices = {}
     for price_str in csv:gmatch("[^,]+") do
@@ -186,10 +199,13 @@ function draw_crypto_widget(cr, x, y)
     draw_icon_crypto(cr, x + 15, y + 15, 20)
     draw_text(cr, x + 35, y + 20, "CRYPTO", 12, transparency_value)
 
-    -- Fetch data
-    local raw_price = get_val("--get_price")
-    local raw_change = get_val("--get_change")
-    local raw_mcap = get_val("--get_market_cap")
+    -- Fetch all price data in one call
+    local data = get_all_data()
+    local raw_price = data and data["PRICE"] or ""
+    local raw_change = data and data["CHANGE"] or ""
+    local raw_mcap = data and data["MCAP"] or ""
+
+    -- Fetch chart separately (cached 120s)
     local raw_chart = get_val("--days " .. chart_days .. " --get_chart")
 
     -- Coin + Price
