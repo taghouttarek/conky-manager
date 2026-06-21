@@ -865,30 +865,35 @@ class ConkyManagerGUI:
                 messagebox.showinfo("Update", "Already up to date!")
                 return
 
-            # Get new commits
+            # Get new commits between versions
             result = subprocess.run(
-                ['git', '-C', str(repo_path), 'log', '--oneline', f'v{VERSION}..origin/master'],
+                ['git', '-C', str(repo_path), 'log', '--oneline', f'HEAD..origin/master'],
                 capture_output=True, text=True, timeout=10
             )
             commits = result.stdout.strip()
 
-            # If tag doesn't exist, show all commits
-            if not commits:
-                result = subprocess.run(
-                    ['git', '-C', str(repo_path), 'log', '--oneline', 'HEAD..origin/master'],
-                    capture_output=True, text=True, timeout=10
-                )
-                commits = result.stdout.strip()
-
+            # Get file changes
             result = subprocess.run(
                 ['git', '-C', str(repo_path), 'diff', '--stat', 'HEAD', 'origin/master'],
                 capture_output=True, text=True, timeout=10
             )
+            changes = result.stdout.strip()
 
-            msg = f"Update available: {VERSION} -> {remote_version}\n\n"
-            if commits:
-                msg += f"Commits:\n{commits}\n\n"
-            msg += f"Changes:\n{result.stdout}\n\nApply update?"
+            # Get commit messages with details
+            result = subprocess.run(
+                ['git', '-C', str(repo_path), 'log', '--format=%h %s', f'HEAD..origin/master'],
+                capture_output=True, text=True, timeout=10
+            )
+            details = result.stdout.strip()
+
+            msg = f"Update: {VERSION} -> {remote_version}\n\n"
+            if details:
+                msg += f"Changes:\n{details}\n\n"
+            else:
+                msg += "No new commits found.\n\n"
+            if changes:
+                msg += f"Files:\n{changes}\n\n"
+            msg += "Apply update?"
 
             if messagebox.askyesno("Update Available", msg):
                 result = subprocess.run(['git', '-C', str(repo_path), 'pull', 'origin', 'master'],
