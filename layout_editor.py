@@ -18,6 +18,20 @@ DEFAULT_SCALE = 0.5
 RESOLUTION_PRESETS = ["1920x1080", "2560x1440", "3840x2160", "Custom"]
 MIN_SCREEN_W = 800
 MIN_SCREEN_H = 600
+MIN_WIDGET_SIZES = {
+    "crypto-conky-manager": (250, 250),
+    "kev-conky-manager": (250, 250),
+    "infra-conky-manager": (250, 250),
+    "bandwidth-conky-manager": (220, 120),
+    "network-conky-manager": (220, 160),
+    "processes-conky-manager": (250, 220),
+    "docker-conky-manager": (250, 180),
+    "k8s-conky-manager": (250, 140),
+    "weather-conky-manager": (120, 120),
+    "calendar-conky-manager": (600, 500),
+    "revisited-conky-manager": (1044, 92),
+    "claude-conky-manager": (300, 420),
+}
 MAX_SCREEN_W = 7680
 MAX_SCREEN_H = 4320
 
@@ -87,7 +101,7 @@ def save_positions(screen_w, screen_h, monitor, widgets):
 class WidgetRect:
     def __init__(self, canvas, name, x, y, w, h, color="#ffffff",
                  screen_w=DEFAULT_SCREEN_W, screen_h=DEFAULT_SCREEN_H,
-                 scale=DEFAULT_SCALE):
+                 scale=DEFAULT_SCALE, min_w=100, min_h=50):
         self.canvas = canvas
         self.name = name
         self.x = x
@@ -98,6 +112,8 @@ class WidgetRect:
         self.screen_w = screen_w
         self.screen_h = screen_h
         self.scale = scale
+        self.min_w = min_w
+        self.min_h = min_h
         self.rect = None
         self.label = None
         self.resize_handle = None
@@ -175,8 +191,8 @@ class WidgetRect:
         self.update_position()
 
     def resize(self, dx, dy):
-        new_w = max(100, self.w + dx)
-        new_h = max(50, self.h + dy)
+        new_w = max(self.min_w, self.w + dx)
+        new_h = max(self.min_h, self.h + dy)
         self.w = min(new_w, self.screen_w - self.x)
         self.h = min(new_h, self.screen_h - self.y)
         self.update_position()
@@ -466,6 +482,7 @@ class LayoutEditor:
             if name not in running:
                 continue
             pos = layout.get(name, defaults)
+            mw, mh = MIN_WIDGET_SIZES.get(name, (100, 50))
             self.widgets[name] = WidgetRect(
                 self.canvas, name,
                 pos.get("x", defaults["x"]),
@@ -476,6 +493,8 @@ class LayoutEditor:
                 screen_w=self.screen_w,
                 screen_h=self.screen_h,
                 scale=self.scale,
+                min_w=mw,
+                min_h=mh,
             )
 
     def on_press(self, event):
