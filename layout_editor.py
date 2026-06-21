@@ -181,13 +181,14 @@ class LayoutEditor:
         self.setup_ui()
         self.load_widgets()
 
+        self.root.geometry(f"{self.screen_w}x{self.screen_h}+0+0")
         try:
             self.root.attributes('-zoomed', True)
         except Exception:
             try:
                 self.root.state("zoomed")
             except Exception:
-                self.root.geometry(f"{self.screen_w}x{self.screen_h}+0+0")
+                pass
 
         if self.standalone:
             self.root.mainloop()
