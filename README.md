@@ -1,6 +1,6 @@
 # Conky Manager
 
-A full-featured Python/Tkinter GUI for managing Conky themes on Linux.
+A full-featured Python/CustomTkinter GUI for managing Conky themes on Linux.
 
 ## Screenshots
 
@@ -26,9 +26,14 @@ A full-featured Python/Tkinter GUI for managing Conky themes on Linux.
 - **Autostart** - Configure themes to start on login via `.desktop` entries
 - **Layout Editor** - Drag-and-drop interface for positioning widgets with zoom, alignment guides, and magnetic snapping
 - **Auto-Update** - Check for updates from git repo, backup and apply automatically
+- **Settings** - Configure weather API key, city, and country code
 - **Theme Editing** - Edit theme configs directly from the manager
 - **Theme Deletion** - Remove unused themes (multi-select supported)
-- **Dark Icon Style** - All widgets use consistent dark icon styling
+- **Dark Mode** - Modern dark UI with blue accent theme via CustomTkinter
+- **Wayland Support** - Full compatibility with Wayland via cairo_xlib
+- **Settings Window** - Configure weather API key, city, and country code
+- **Dark Mode** - Modern dark UI with blue accent theme
+- **Wayland Support** - Full compatibility with Wayland via cairo_xlib
 
 ## Included Themes
 
@@ -54,7 +59,6 @@ A full-featured Python/Tkinter GUI for managing Conky themes on Linux.
 |-------|-------------|
 | `calendar-conky-manager` | Calendar with circular design |
 | `revisited-conky-manager` | Revisited desktop widgets (circle/square, horizontal/vertical) |
-| `claude-conky-manager` | Claude-themed ring widgets |
 
 ## Installation
 
@@ -141,6 +145,7 @@ python3 /opt/conky-manager/conky_manager.py
 - **Stop All** - Stop all running themes
 - **Restart** - Restart all running themes
 - **Layout** - Open drag-and-drop layout editor
+- **Settings** - Configure weather API key, city, and country code
 - **Update** - Check for and apply updates from git repo
 - **Restart Manager** - Restart the manager application
 
