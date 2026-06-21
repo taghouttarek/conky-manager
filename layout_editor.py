@@ -4,7 +4,10 @@ import tkinter as tk
 from tkinter import ttk
 import json
 import os
+import re
 import subprocess
+import tempfile
+import time
 from pathlib import Path
 
 LAYOUT_FILE = Path.home() / ".config" / "conky" / "layout.json"
@@ -15,15 +18,20 @@ SCALE = 0.5  # Canvas scale factor (adjusted by zoom)
 
 def load_layout():
     if LAYOUT_FILE.exists():
-        with open(LAYOUT_FILE) as f:
-            return json.load(f)
+        try:
+            with open(LAYOUT_FILE, encoding='utf-8') as f:
+                return json.load(f)
+        except (json.JSONDecodeError, UnicodeDecodeError):
+            return {}
     return {}
 
 
 def save_layout(data):
     LAYOUT_FILE.parent.mkdir(parents=True, exist_ok=True)
-    with open(LAYOUT_FILE, "w") as f:
+    fd, tmp = tempfile.mkstemp(dir=LAYOUT_FILE.parent, suffix='.tmp')
+    with os.fdopen(fd, 'w', encoding='utf-8') as f:
         json.dump(data, f, indent=2)
+    os.replace(tmp, LAYOUT_FILE)
 
 
 class WidgetRect:
@@ -273,6 +281,7 @@ class LayoutEditor:
         self.root.geometry(f"{new_w + 60}x{new_h + 120}")
         # Clear and redraw
         self.canvas.delete("all")
+        self.selected = None
         # Grid lines
         for x in range(0, SCREEN_W, 100):
             sx = x * SCALE
@@ -306,82 +315,88 @@ class LayoutEditor:
         conky_config = Path.home() / ".config" / "conky"
         updated_themes = set()
         for name, widget in self.widgets.items():
-            theme_dir = conky_config / name
+            try:
+                theme_dir = conky_config / name
 
-            # Find and update any Lua file with position variables
-            for lua_file in theme_dir.rglob("*.lua"):
-                self.update_lua_position(lua_file, widget)
-                updated_themes.add(name)
+                # Find and update any Lua file with position variables
+                for lua_file in theme_dir.rglob("*.lua"):
+                    self.update_lua_position(lua_file, widget)
 
-            # Update conkyrc (gap_x/gap_y)
-            conkyrc = theme_dir / "conkyrc"
-            if conkyrc.exists():
-                self.update_conkyrc_position(conkyrc, widget)
+                # Update conkyrc (gap_x/gap_y)
+                conkyrc = theme_dir / "conkyrc"
+                if conkyrc.exists():
+                    self.update_conkyrc_position(conkyrc, widget)
+
                 updated_themes.add(name)
+            except Exception as e:
+                print(f"Error updating {name}: {e}")
 
         if updated_themes:
             self.restart_themes(updated_themes)
 
     def update_conkyrc_position(self, conkyrc, widget):
         target = conkyrc.resolve()
-        with open(target) as f:
+        with open(target, encoding='utf-8') as f:
             content = f.read()
 
-        import re
-        content = re.sub(
-            r'(gap_x\s*=\s*)\d+',
+        new_content = re.sub(
+            r'(gap_x\s*=\s*)-?\d+',
             f'\\g<1>{int(widget.x)}',
             content
         )
-        content = re.sub(
-            r'(gap_y\s*=\s*)\d+',
+        new_content = re.sub(
+            r'(gap_y\s*=\s*)-?\d+',
             f'\\g<1>{int(widget.y)}',
-            content
+            new_content
         )
 
-        with open(target, "w") as f:
-            f.write(content)
-        print(f"Updated {conkyrc}")
+        if new_content != content:
+            with open(target, "w", encoding='utf-8') as f:
+                f.write(new_content)
+            print(f"Updated {conkyrc}")
 
     def update_lua_position(self, lua_file, widget):
         target = lua_file.resolve()
-        with open(target) as f:
+        with open(target, encoding='utf-8') as f:
             content = f.read()
 
-        import re
+        new_content = content
 
         # Pattern: local widget_x = N (absolute)
-        content = re.sub(
-            r'(local\s+widget_x\s*=\s*)[\d.]+',
+        new_content = re.sub(
+            r'(local\s+widget_x\s*=\s*)\d+',
             f'\\g<1>{int(widget.x)}',
-            content
+            new_content
         )
         # Pattern: local widget_y = N (absolute)
-        content = re.sub(
-            r'(local\s+widget_y\s*=\s*)[\d.]+',
+        new_content = re.sub(
+            r'(local\s+widget_y\s*=\s*)\d+',
             f'\\g<1>{int(widget.y)}',
-            content
+            new_content
         )
         # Pattern: local x = N (standalone assignment)
-        content = re.sub(
-            r'(local\s+x\s*=\s*)\d+(?=\s*[;\n])',
+        new_content = re.sub(
+            r'(local\s+x\s*=\s*)\d+(?=\s*$)',
             f'\\g<1>{int(widget.x)}',
-            content
+            new_content,
+            flags=re.MULTILINE
         )
         # Pattern: local y = N (standalone assignment)
-        content = re.sub(
-            r'(local\s+y\s*=\s*)\d+(?=\s*[;\n])',
+        new_content = re.sub(
+            r'(local\s+y\s*=\s*)\d+(?=\s*$)',
             f'\\g<1>{int(widget.y)}',
-            content
+            new_content,
+            flags=re.MULTILINE
         )
 
-        with open(target, "w") as f:
-            f.write(content)
-        print(f"Updated {lua_file}")
+        if new_content != content:
+            with open(target, "w", encoding='utf-8') as f:
+                f.write(new_content)
+            print(f"Updated {lua_file}")
 
     def restart_themes(self, theme_names):
-        import time
         conky_config = Path.home() / ".config" / "conky"
+        # Kill phase
         for name in theme_names:
             conkyrc = conky_config / name / "conkyrc"
             if not conkyrc.exists():
@@ -393,11 +408,14 @@ class LayoutEditor:
                 )
                 for line in result.stdout.splitlines():
                     if config_path in line:
-                        pid = line.split()[0]
-                        subprocess.run(['kill', pid], timeout=5)
-            except Exception:
-                pass
+                        parts = line.split()
+                        if parts and parts[0].isdigit():
+                            subprocess.run(['kill', parts[0]], timeout=5)
+            except Exception as e:
+                print(f"Error killing {name}: {e}")
+        # Wait for processes to exit
         time.sleep(0.5)
+        # Restart phase
         for name in theme_names:
             conkyrc = conky_config / name / "conkyrc"
             if not conkyrc.exists():

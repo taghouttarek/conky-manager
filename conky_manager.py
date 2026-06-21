@@ -834,7 +834,6 @@ class ConkyManagerGUI:
         candidates = [
             Path("/opt/conky-manager"),
             Path(__file__).parent,
-            HOME / "Documents" / "PERSO" / "repos" / "conky",
             Path.home() / "repos" / "conky",
         ]
         for p in candidates:

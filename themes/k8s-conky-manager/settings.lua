@@ -1,4 +1,5 @@
 require 'cairo'
+os.setlocale("en_US.utf8", "numeric")
 
 HTML_color = "#FFFFFF"
 HTML_color_border = "#FFFFFF"
@@ -15,7 +16,7 @@ operator_transpose = {CAIRO_OPERATOR_CLEAR, CAIRO_OPERATOR_SOURCE}
 
 function hex2rgb(hex)
     hex = hex:gsub("#","")
-    return (tonumber("0x"..hex:sub(1,2))/255), (tonumber("0x"..hex:sub(3,4))/255), tonumber(("0x"..hex:sub(5,6))/255)
+    return (tonumber("0x"..hex:sub(1,2))/255), (tonumber("0x"..hex:sub(3,4))/255), tonumber("0x"..hex:sub(5,6))/255
 end
 
 r, g, b = hex2rgb(HTML_color)
@@ -108,7 +109,7 @@ function conky_start_widgets()
     local updates = conky_parse('${updates}')
     update_num = tonumber(updates)
 
-    if update_num > 5 then
+    if update_num and update_num > 5 then
         draw_conky_function(cr)
     end
     cairo_surface_destroy(cs)

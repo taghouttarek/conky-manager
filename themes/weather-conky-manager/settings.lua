@@ -21,7 +21,7 @@ assert(os.setlocale("en_US.utf8", "numeric"))
 
 function hex2rgb(hex)
 	hex = hex:gsub("#","")
-	return (tonumber("0x"..hex:sub(1,2))/255), (tonumber("0x"..hex:sub(3,4))/255), tonumber(("0x"..hex:sub(5,6))/255)
+	return (tonumber("0x"..hex:sub(1,2))/255), (tonumber("0x"..hex:sub(3,4))/255), tonumber("0x"..hex:sub(5,6))/255
 end
 
 r_circle, g_circle, b_circle = hex2rgb(HTML_circle)
@@ -56,9 +56,7 @@ end
 
 function draw_weather_icon(cr, pos_x, pos_y, image_path, trans)
 	cairo_set_operator(cr, CAIRO_OPERATOR_OVER)
-	local home = assert(io.popen("echo $HOME"))
-	local home = assert(home:read('*a'))
-	local home = home:gsub("[\n\r]", "") 
+	local home = os.getenv("HOME") or ""
 	local image_path = home .. "/.config/conky/weather-conky-manager/PNG/" .. image_path .. ".png"
 	local image = cairo_image_surface_create_from_png(image_path)
 	local w_img = cairo_image_surface_get_width(image)
@@ -74,12 +72,13 @@ end
 function draw_text(cr, pos_x, pos_y, r_text, g_text, b_text, trans, text, font_size, shift_x, shift_y)
 	cairo_set_operator(cr, CAIRO_OPERATOR_SOURCE)
 	cairo_set_source_rgba(cr, r_text, g_text, b_text, trans)
-	ct = cairo_text_extents_t:create()
+	local ct = cairo_text_extents_t:create()
 	cairo_set_font_size(cr, font_size)
 	cairo_text_extents(cr,text,ct)
 	cairo_move_to(cr,pos_x-ct.width/2+shift_x,pos_y+ct.height/2+shift_y)
 	cairo_show_text(cr,text)
 	cairo_close_path(cr)
+	ct:destroy()
 end
 
 function draw_function(cr)
@@ -103,16 +102,18 @@ function draw_function(cr)
 	cairo_select_font_face (cr, "Dejavu Sans Book", CAIRO_FONT_SLANT_NORMAL, CAIRO_FONT_WEIGHT_NORMAL)
   	draw_text(cr, pos_x, pos_y, r_text, g_text, b_text, transparency_text, city, City_font, 0, -35)
   ----Day
-  	day = conky_parse('${exec date +%A}')
+  	local day = conky_parse('${exec date +%A}') or "N/A"
 	cairo_select_font_face (cr, "Dejavu Sans Book", CAIRO_FONT_SLANT_NORMAL, CAIRO_FONT_WEIGHT_NORMAL)
 	draw_text(cr, pos_x, pos_y, r_text, g_text, b_text, transparency_text, day, Day_font, 0, 35)
   ----Temperature
 	cairo_select_font_face (cr, "Dejavu Sans Book", CAIRO_FONT_SLANT_NORMAL, CAIRO_FONT_WEIGHT_BOLD)
-	temperature = conky_parse("${exec ~/.config/conky/weather-conky-manager/openweather.py --get_temp_c --api_key " .. api_key .. " --city " .. "\"" .. city .. "\"" .. " --ccode " .. country_code .. "}")
+	local temperature = conky_parse("${exec ~/.config/conky/weather-conky-manager/openweather.py --get_temp_c --api_key " .. api_key .. " --city " .. "\"" .. city .. "\"" .. " --ccode " .. country_code .. "}") or "N/A"
 	draw_text(cr, pos_x, pos_y, r_text, g_text, b_text, transparency_text, temperature .. "˚C", Temperature_font, 19.25, 0)
-  ----Draw weathor icon
-  	image_path = conky_parse("${exec ~/.config/conky/weather-conky-manager/openweather.py --get_weather_icon --api_key " .. api_key .. " --city " .. "\"" .. city .. "\"" .. " --ccode " .. country_code .. "}")
-  	draw_weather_icon(cr, pos_x-60, pos_y, image_path, transparency_weather_icon)
+  ----Draw weather icon
+  	local image_path = conky_parse("${exec ~/.config/conky/weather-conky-manager/openweather.py --get_weather_icon --api_key " .. api_key .. " --city " .. "\"" .. city .. "\"" .. " --ccode " .. country_code .. "}") or ""
+  	if image_path ~= "" then
+  		draw_weather_icon(cr, pos_x-60, pos_y, image_path, transparency_weather_icon)
+  	end
 
 end
 

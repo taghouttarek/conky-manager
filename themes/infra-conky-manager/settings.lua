@@ -23,7 +23,7 @@ function hex2rgb(hex)
     hex = hex:gsub("#", "")
     return (tonumber("0x" .. hex:sub(1, 2)) / 255),
            (tonumber("0x" .. hex:sub(3, 4)) / 255),
-           tonumber(("0x" .. hex:sub(5, 6)) / 255)
+           tonumber("0x" .. hex:sub(5, 6)) / 255
 end
 
 r, g, b = hex2rgb(HTML_color)
@@ -139,7 +139,7 @@ function conky_start_widgets()
     local cr = cairo_create(cs)
 
     local updates = conky_parse("${updates}")
-    if tonumber(updates) > 5 then
+    if tonumber(updates or "0") > 5 then
         draw_conky_function(cr)
     end
     cairo_surface_destroy(cs)
