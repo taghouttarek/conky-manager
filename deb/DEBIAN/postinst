@@ -24,11 +24,12 @@ cp -r "$CLONE_DIR"/* "$INSTALL_DIR/"
 chmod +x "$INSTALL_DIR/install.sh" 2>/dev/null || true
 chmod +x "$INSTALL_DIR/conky_manager.py" 2>/dev/null || true
 
-# Install Python dependencies
+# Install Python dependencies system-wide
 echo "Installing Python dependencies..."
+python3 -m pip install customtkinter --break-system-packages 2>/dev/null || \
 pip3 install customtkinter --break-system-packages 2>/dev/null || \
 pip3 install customtkinter 2>/dev/null || \
-echo "Warning: Could not install customtkinter. Run: pip3 install customtkinter"
+echo "WARNING: Could not install customtkinter. Run: pip3 install customtkinter"
 
 # Install themes to ~/.config/conky for all users
 for user_dir in /home/*; do
