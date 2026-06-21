@@ -494,8 +494,6 @@ class LayoutEditor:
         }
 
         for name, defaults in default_widgets.items():
-            if name not in running:
-                continue
             pos = layout.get(name, defaults)
             mw, mh = MIN_WIDGET_SIZES.get(name, (100, 50))
             self.widgets[name] = WidgetRect(
@@ -747,7 +745,7 @@ class LayoutEditor:
         self.redraw_canvas()
 
     def redraw_canvas(self):
-        self.zoom_label.config(text=f"{int(self.scale * 100)}%")
+        self.zoom_label.configure(text=f"{int(self.scale * 100)}%")
         saved = {}
         for name, w in self.widgets.items():
             saved[name] = (w.x, w.y, w.w, w.h, w.color)

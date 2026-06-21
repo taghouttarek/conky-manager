@@ -17,6 +17,7 @@ Temperature_font = 24
 Day_font = 12
 -- ###Dont change code below###
 require 'cairo'
+require 'cairo_xlib'
 assert(os.setlocale("en_US.utf8", "numeric"))
 
 function hex2rgb(hex)

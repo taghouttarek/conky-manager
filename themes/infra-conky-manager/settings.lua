@@ -2,6 +2,7 @@
 -- Monitors CVEs for k8s, docker, keycloak, postgres, helm, argo, etc.
 
 require 'cairo'
+require 'cairo_xlib'
 assert(os.setlocale("en_US.utf8", "numeric"))
 
 -- Colors (matching system-widgets exactly)
