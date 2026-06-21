@@ -194,6 +194,7 @@ ps aux | grep conky | grep -v grep
 ## Dependencies
 - conky (1.19+)
 - python3-tk (for manager GUI)
+- customtkinter (for modern UI): `pip3 install customtkinter`
 - lua5.3+ with cairo
 - lm-sensors (for Calendar theme)
 - pyowm (for Weather theme): `pip3 install pyowm`

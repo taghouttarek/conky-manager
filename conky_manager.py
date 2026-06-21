@@ -23,10 +23,11 @@ from pathlib import Path
 from datetime import datetime
 
 try:
+    import customtkinter as ctk
     import tkinter as tk
-    from tkinter import ttk, filedialog, messagebox, scrolledtext
+    from tkinter import ttk, filedialog, messagebox
 except ImportError:
-    print("tkinter not found. Install with: sudo apt install python3-tk")
+    print("customtkinter not found. Install with: pip3 install customtkinter")
     sys.exit(1)
 
 import layout_editor
@@ -513,53 +514,60 @@ class ConkyManagerGUI:
     def setup_ui(self):
         """Setup the user interface"""
         # Main container
-        main_frame = ttk.Frame(self.root, padding="10")
-        main_frame.pack(fill=tk.BOTH, expand=True)
+        main_frame = ctk.CTkFrame(self.root)
+        main_frame.pack(fill="both", expand=True, padx=10, pady=10)
 
         # Header
-        header_frame = ttk.Frame(main_frame)
-        header_frame.pack(fill=tk.X, pady=(0, 10))
+        header_frame = ctk.CTkFrame(main_frame, fg_color="transparent")
+        header_frame.pack(fill="x", pady=(0, 10))
 
-        ttk.Label(header_frame, text=f"Conky Manager v{VERSION}", font=('Helvetica', 16, 'bold')).pack(side=tk.LEFT)
+        ctk.CTkLabel(header_frame, text=f"Conky Manager v{VERSION}", font=('Helvetica', 16, 'bold')).pack(side="left")
 
         # Status indicator
         self.status_var = tk.StringVar(value="Stopped")
-        self.status_label = ttk.Label(header_frame, textvariable=self.status_var, foreground='red')
-        self.status_label.pack(side=tk.RIGHT, padx=10)
+        self.status_label = ctk.CTkLabel(header_frame, textvariable=self.status_var, text_color='red')
+        self.status_label.pack(side="right", padx=10)
         self.update_status()
 
         # Toolbar
-        toolbar_frame = ttk.Frame(main_frame)
-        toolbar_frame.pack(fill=tk.X, pady=(0, 10))
+        toolbar_frame = ctk.CTkFrame(main_frame, fg_color="transparent")
+        toolbar_frame.pack(fill="x", pady=(0, 10))
 
-        ttk.Button(toolbar_frame, text="Refresh", command=self.refresh_theme_list).pack(side=tk.LEFT, padx=2)
-        ttk.Button(toolbar_frame, text="Import Archive", command=self.import_archive).pack(side=tk.LEFT, padx=2)
-        ttk.Button(toolbar_frame, text="Import Folder", command=self.import_folder).pack(side=tk.LEFT, padx=2)
-        ttk.Button(toolbar_frame, text="Layout", command=self.open_layout_editor).pack(side=tk.LEFT, padx=2)
-        ttk.Button(toolbar_frame, text="Open ~/.conky", command=self.open_conky_dir).pack(side=tk.LEFT, padx=2)
+        ctk.CTkButton(toolbar_frame, text="Refresh", command=self.refresh_theme_list, width=90).pack(side="left", padx=2)
+        ctk.CTkButton(toolbar_frame, text="Import Archive", command=self.import_archive, width=110).pack(side="left", padx=2)
+        ctk.CTkButton(toolbar_frame, text="Import Folder", command=self.import_folder, width=110).pack(side="left", padx=2)
+        ctk.CTkButton(toolbar_frame, text="Layout", command=self.open_layout_editor, width=70).pack(side="left", padx=2)
+        ctk.CTkButton(toolbar_frame, text="Open ~/.conky", command=self.open_conky_dir, width=110).pack(side="left", padx=2)
 
-        ttk.Separator(toolbar_frame, orient=tk.VERTICAL).pack(side=tk.LEFT, fill=tk.Y, padx=5)
+        sep1 = ctk.CTkFrame(toolbar_frame, width=2, fg_color="gray40")
+        sep1.pack(side="left", fill="y", padx=5, pady=5)
 
         # Monitor selector
-        ttk.Label(toolbar_frame, text="Monitor:").pack(side=tk.LEFT, padx=(5, 2))
+        ctk.CTkLabel(toolbar_frame, text="Monitor:").pack(side="left", padx=(5, 2))
         self.monitor_var = tk.StringVar()
-        self.monitor_combo = ttk.Combobox(
-            toolbar_frame, textvariable=self.monitor_var,
-            values=[], width=20, state="readonly"
+        self.monitor_combo = ctk.CTkComboBox(
+            toolbar_frame, variable=self.monitor_var,
+            values=[], width=200, state="readonly",
+            command=self._on_monitor_change
         )
-        self.monitor_combo.pack(side=tk.LEFT, padx=2)
-        self.monitor_combo.bind("<<ComboboxSelected>>", self._on_monitor_change)
+        self.monitor_combo.pack(side="left", padx=2)
         self._populate_monitors()
 
-        self.update_btn = ttk.Button(toolbar_frame, text="Update", command=self.update_from_repo)
-        self.update_btn.pack(side=tk.RIGHT, padx=2)
-        ttk.Button(toolbar_frame, text="Restart Manager", command=self.restart_manager).pack(side=tk.RIGHT, padx=2)
+        self.update_btn = ctk.CTkButton(toolbar_frame, text="Update", command=self.update_from_repo, width=80)
+        self.update_btn.pack(side="right", padx=2)
+        ctk.CTkButton(toolbar_frame, text="Restart Manager", command=self.restart_manager, width=130).pack(side="right", padx=2)
 
         # Theme list
-        list_frame = ttk.Frame(main_frame)
-        list_frame.pack(fill=tk.BOTH, expand=True, pady=(0, 10))
+        list_frame = ctk.CTkFrame(main_frame)
+        list_frame.pack(fill="both", expand=True, pady=(0, 10))
 
-        # Treeview
+        # Treeview (keep ttk.Treeview, style for dark mode)
+        style = ttk.Style()
+        style.theme_use("default")
+        style.configure("Treeview", background="#2b2b2b", foreground="white", fieldbackground="#2b2b2b", borderwidth=0)
+        style.configure("Treeview.Heading", background="#3b3b3b", foreground="white", borderwidth=1, relief="flat")
+        style.map("Treeview", background=[("selected", "#1a5fb4")], foreground=[("selected", "white")])
+
         columns = ('name', 'type', 'lua', 'autostart', 'status')
         self.tree = ttk.Treeview(list_frame, columns=columns, show='headings', selectmode='extended')
 
@@ -574,58 +582,62 @@ class ConkyManagerGUI:
         self.tree.column('lua', width=80)
         self.tree.column('status', width=100)
 
-        scrollbar = ttk.Scrollbar(list_frame, orient=tk.VERTICAL, command=self.tree.yview)
+        scrollbar = ttk.Scrollbar(list_frame, orient="vertical", command=self.tree.yview)
         self.tree.configure(yscrollcommand=scrollbar.set)
 
-        self.tree.pack(side=tk.LEFT, fill=tk.BOTH, expand=True)
-        scrollbar.pack(side=tk.RIGHT, fill=tk.Y)
+        self.tree.pack(side="left", fill="both", expand=True)
+        scrollbar.pack(side="right", fill="y")
 
         self.tree.bind('<<TreeviewSelect>>', self.on_theme_select)
         self.tree.bind('<Double-1>', self.on_theme_double_click)
 
         # Button frame
-        button_frame = ttk.Frame(main_frame)
-        button_frame.pack(fill=tk.X)
+        button_frame = ctk.CTkFrame(main_frame, fg_color="transparent")
+        button_frame.pack(fill="x")
 
-        self.run_btn = ttk.Button(button_frame, text="Run Theme", command=self.run_theme, state=tk.DISABLED)
-        self.run_btn.pack(side=tk.LEFT, padx=2)
+        self.run_btn = ctk.CTkButton(button_frame, text="Run Theme", command=self.run_theme, state="disabled", width=100)
+        self.run_btn.pack(side="left", padx=2)
 
-        self.stop_theme_btn = ttk.Button(button_frame, text="Stop Theme", command=self.stop_theme, state=tk.DISABLED)
-        self.stop_theme_btn.pack(side=tk.LEFT, padx=2)
+        self.stop_theme_btn = ctk.CTkButton(button_frame, text="Stop Theme", command=self.stop_theme, state="disabled", width=100)
+        self.stop_theme_btn.pack(side="left", padx=2)
 
-        self.restart_theme_btn = ttk.Button(button_frame, text="Restart Theme", command=self.restart_theme, state=tk.DISABLED)
-        self.restart_theme_btn.pack(side=tk.LEFT, padx=2)
+        self.restart_theme_btn = ctk.CTkButton(button_frame, text="Restart Theme", command=self.restart_theme, state="disabled", width=120)
+        self.restart_theme_btn.pack(side="left", padx=2)
 
-        self.stop_btn = ttk.Button(button_frame, text="Stop All", command=self.stop_conky)
-        self.stop_btn.pack(side=tk.LEFT, padx=2)
+        self.stop_btn = ctk.CTkButton(button_frame, text="Stop All", command=self.stop_conky, width=80)
+        self.stop_btn.pack(side="left", padx=2)
 
-        self.restart_btn = ttk.Button(button_frame, text="Restart", command=self.restart_all)
-        self.restart_btn.pack(side=tk.LEFT, padx=2)
+        self.restart_btn = ctk.CTkButton(button_frame, text="Restart", command=self.restart_all, width=80)
+        self.restart_btn.pack(side="left", padx=2)
 
-        ttk.Separator(button_frame, orient=tk.VERTICAL).pack(side=tk.LEFT, fill=tk.Y, padx=5)
+        sep2 = ctk.CTkFrame(button_frame, width=2, fg_color="gray40")
+        sep2.pack(side="left", fill="y", padx=5, pady=5)
 
-        self.edit_btn = ttk.Button(button_frame, text="Edit", command=self.edit_theme, state=tk.DISABLED)
-        self.edit_btn.pack(side=tk.LEFT, padx=2)
+        self.edit_btn = ctk.CTkButton(button_frame, text="Edit", command=self.edit_theme, state="disabled", width=60)
+        self.edit_btn.pack(side="left", padx=2)
 
-        self.folder_btn = ttk.Button(button_frame, text="Open Folder", command=self.open_theme_folder, state=tk.DISABLED)
-        self.folder_btn.pack(side=tk.LEFT, padx=2)
+        self.folder_btn = ctk.CTkButton(button_frame, text="Open Folder", command=self.open_theme_folder, state="disabled", width=100)
+        self.folder_btn.pack(side="left", padx=2)
 
-        self.delete_btn = ttk.Button(button_frame, text="Delete", command=self.delete_theme, state=tk.DISABLED)
-        self.delete_btn.pack(side=tk.LEFT, padx=2)
+        self.delete_btn = ctk.CTkButton(button_frame, text="Delete", command=self.delete_theme, state="disabled", width=70)
+        self.delete_btn.pack(side="left", padx=2)
 
-        ttk.Separator(button_frame, orient=tk.VERTICAL).pack(side=tk.LEFT, fill=tk.Y, padx=5)
+        sep3 = ctk.CTkFrame(button_frame, width=2, fg_color="gray40")
+        sep3.pack(side="left", fill="y", padx=5, pady=5)
 
         self.autostart_var = tk.BooleanVar(value=False)
-        self.autostart_check = ttk.Checkbutton(button_frame, text="Autostart", variable=self.autostart_var,
-                                               command=self.toggle_autostart, state=tk.DISABLED)
-        self.autostart_check.pack(side=tk.LEFT, padx=2)
+        self.autostart_check = ctk.CTkCheckBox(button_frame, text="Autostart", variable=self.autostart_var,
+                                                command=self.toggle_autostart, state="disabled")
+        self.autostart_check.pack(side="left", padx=2)
 
         # Info frame
-        info_frame = ttk.LabelFrame(main_frame, text="Theme Info", padding="5")
-        info_frame.pack(fill=tk.X, pady=(10, 0))
+        info_frame = ctk.CTkFrame(main_frame)
+        info_frame.pack(fill="x", pady=(10, 0))
 
-        self.info_text = scrolledtext.ScrolledText(info_frame, height=4, wrap=tk.WORD, state=tk.DISABLED)
-        self.info_text.pack(fill=tk.X)
+        ctk.CTkLabel(info_frame, text="Theme Info", font=('Helvetica', 12, 'bold')).pack(anchor="w", padx=5, pady=(5, 0))
+
+        self.info_text = ctk.CTkTextbox(info_frame, height=80, state="disabled")
+        self.info_text.pack(fill="x", padx=5, pady=5)
 
     def auto_refresh(self):
         """Auto-refresh theme list every 3 seconds"""
@@ -666,14 +678,14 @@ class ConkyManagerGUI:
             name = self.tree.item(new_selection[-1])['values'][0]
             self.selected_theme = next((t for t in self.manager.themes if t['name'] == name), None)
             if self.selected_theme:
-                self.run_btn.config(state=tk.NORMAL)
-                self.edit_btn.config(state=tk.NORMAL)
-                self.folder_btn.config(state=tk.NORMAL)
-                self.delete_btn.config(state=tk.NORMAL)
-                self.autostart_check.config(state=tk.NORMAL)
+                self.run_btn.configure(state="normal")
+                self.edit_btn.configure(state="normal")
+                self.folder_btn.configure(state="normal")
+                self.delete_btn.configure(state="normal")
+                self.autostart_check.configure(state="normal")
                 is_running = self.manager.is_theme_running(self.selected_theme)
-                self.stop_theme_btn.config(state=tk.NORMAL if is_running else tk.DISABLED)
-                self.restart_theme_btn.config(state=tk.NORMAL if is_running else tk.DISABLED)
+                self.stop_theme_btn.configure(state="normal" if is_running else "disabled")
+                self.restart_theme_btn.configure(state="normal" if is_running else "disabled")
                 self.autostart_var.set(self.manager.is_autostart(self.selected_theme))
 
     def on_theme_select(self, event):
@@ -685,16 +697,16 @@ class ConkyManagerGUI:
             self.selected_theme = next((t for t in self.manager.themes if t['name'] == theme_name), None)
 
             if self.selected_theme:
-                self.run_btn.config(state=tk.NORMAL)
-                self.edit_btn.config(state=tk.NORMAL)
-                self.folder_btn.config(state=tk.NORMAL)
-                self.delete_btn.config(state=tk.NORMAL)
-                self.autostart_check.config(state=tk.NORMAL)
+                self.run_btn.configure(state="normal")
+                self.edit_btn.configure(state="normal")
+                self.folder_btn.configure(state="normal")
+                self.delete_btn.configure(state="normal")
+                self.autostart_check.configure(state="normal")
 
                 # Enable/disable stop theme button based on running status
                 is_running = self.manager.is_theme_running(self.selected_theme)
-                self.stop_theme_btn.config(state=tk.NORMAL if is_running else tk.DISABLED)
-                self.restart_theme_btn.config(state=tk.NORMAL if is_running else tk.DISABLED)
+                self.stop_theme_btn.configure(state="normal" if is_running else "disabled")
+                self.restart_theme_btn.configure(state="normal" if is_running else "disabled")
 
                 # Check if autostart
                 self.autostart_var.set(self.manager.is_autostart(self.selected_theme))
@@ -708,8 +720,8 @@ class ConkyManagerGUI:
 
     def show_theme_info(self, theme):
         """Show theme information"""
-        self.info_text.config(state=tk.NORMAL)
-        self.info_text.delete(1.0, tk.END)
+        self.info_text.configure(state="normal")
+        self.info_text.delete("1.0", "end")
 
         info = f"Name: {theme['name']}\n"
         info += f"Path: {theme['path']}\n"
@@ -717,8 +729,8 @@ class ConkyManagerGUI:
         info += f"Has Lua: {'Yes' if theme['has_lua'] else 'No'}\n"
         info += f"Has Images: {'Yes' if theme['has_images'] else 'No'}"
 
-        self.info_text.insert(tk.END, info)
-        self.info_text.config(state=tk.DISABLED)
+        self.info_text.insert("end", info)
+        self.info_text.configure(state="disabled")
 
     def get_selected_themes(self):
         """Get all selected themes"""
@@ -744,14 +756,14 @@ class ConkyManagerGUI:
             self.manager.stop_theme(theme)
         self.update_status()
         self.refresh_theme_list()
-        self.stop_theme_btn.config(state=tk.DISABLED)
+        self.stop_theme_btn.configure(state="disabled")
 
     def stop_conky(self):
         """Stop all conky instances"""
         self.manager.stop_conky()
         self.update_status()
         self.refresh_theme_list()
-        self.stop_theme_btn.config(state=tk.DISABLED)
+        self.stop_theme_btn.configure(state="disabled")
 
     def restart_theme(self):
         """Restart all selected themes"""
@@ -793,11 +805,11 @@ class ConkyManagerGUI:
             for theme in themes:
                 self.manager.delete_theme(theme)
             self.selected_theme = None
-            self.run_btn.config(state=tk.DISABLED)
-            self.edit_btn.config(state=tk.DISABLED)
-            self.folder_btn.config(state=tk.DISABLED)
-            self.delete_btn.config(state=tk.DISABLED)
-            self.autostart_check.config(state=tk.DISABLED)
+            self.run_btn.configure(state="disabled")
+            self.edit_btn.configure(state="disabled")
+            self.folder_btn.configure(state="disabled")
+            self.delete_btn.configure(state="disabled")
+            self.autostart_check.configure(state="disabled")
             self.refresh_theme_list()
 
     def toggle_autostart(self):
@@ -830,20 +842,25 @@ class ConkyManagerGUI:
         if not self.monitors:
             self.monitors = [{"index": 0, "label": "default (1920x1080)"}]
 
-        labels = [m["label"] for m in self.monitors]
-        self.monitor_combo["values"] = labels
+        self.monitor_labels = [m["label"] for m in self.monitors]
+        self.monitor_combo.configure(values=self.monitor_labels)
 
         # Select current monitor from layout.json
         current = self.manager.get_monitor_index()
         for i, m in enumerate(self.monitors):
             if m["index"] == current:
-                self.monitor_combo.current(i)
+                self.monitor_combo.set(self.monitor_labels[i])
                 return
-        self.monitor_combo.current(0)
+        self.monitor_combo.set(self.monitor_labels[0])
 
-    def _on_monitor_change(self, event=None):
+    def _on_monitor_change(self, value=None):
         """Handle monitor selection change."""
-        idx = self.monitor_combo.current()
+        selected = self.monitor_var.get()
+        idx = -1
+        for i, label in enumerate(self.monitor_labels):
+            if label == selected:
+                idx = i
+                break
         if 0 <= idx < len(self.monitors):
             monitor = self.monitors[idx]["index"]
             # Save to layout.json
@@ -900,7 +917,7 @@ class ConkyManagerGUI:
         """Show update available on button"""
         if not self.has_update:
             return
-        self.update_btn.config(text="Update (NEW)")
+        self.update_btn.configure(text="Update (NEW)")
 
     def restart_manager(self):
         """Restart the manager"""
@@ -1066,15 +1083,17 @@ class ConkyManagerGUI:
         """Update the status indicator"""
         if self.manager.is_conky_running():
             self.status_var.set("Running")
-            self.status_label.config(foreground='green')
+            self.status_label.configure(text_color='green')
         else:
             self.status_var.set("Stopped")
-            self.status_label.config(foreground='red')
+            self.status_label.configure(text_color='red')
 
 
 def main():
     """Main entry point"""
-    root = tk.Tk()
+    ctk.set_appearance_mode("dark")
+    ctk.set_default_color_theme("blue")
+    root = ctk.CTk()
     app = ConkyManagerGUI(root)
     root.mainloop()
 
