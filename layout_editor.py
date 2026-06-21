@@ -293,7 +293,7 @@ class LayoutEditor:
         self.monitor_combo = ctk.CTkComboBox(
             toolbar, variable=self.monitor_var,
             values=self.monitor_labels, width=250, height=24, state="readonly",
-            command=self._on_monitor_change, border_spacing=0, corner_radius=3
+            command=self._on_monitor_change, corner_radius=3
         )
         self.monitor_combo.pack(side="left", padx=2)
         # Set initial selection
@@ -305,7 +305,7 @@ class LayoutEditor:
         self.resolution_combo = ctk.CTkComboBox(
             toolbar, variable=self.resolution_var,
             values=RESOLUTION_PRESETS, width=140, height=24, state="readonly",
-            command=self._on_preset_change, border_spacing=0, corner_radius=3
+            command=self._on_preset_change, corner_radius=3
         )
         self.resolution_combo.pack(side="left", padx=2)
 
