@@ -72,13 +72,26 @@ echo "Themes installed to ~/.config/conky/"
 
 # Copy wrapper script
 mkdir -p "$BIN_DIR"
-cat > "$BIN_DIR/$SCRIPT_NAME" << 'EOF'
+# Find a python3 with tkinter support
+PYTHON_BIN=""
+for candidate in /usr/bin/python3 /usr/bin/python3.13 /usr/bin/python3.12 /usr/bin/python3.11 /usr/bin/python3.10; do
+    if "$candidate" -c "import tkinter" 2>/dev/null; then
+        PYTHON_BIN="$candidate"
+        break
+    fi
+done
+if [ -z "$PYTHON_BIN" ]; then
+    PYTHON_BIN="python3"
+    echo "WARNING: No python3 with tkinter found. Trying default python3."
+fi
+
+cat > "$BIN_DIR/$SCRIPT_NAME" << EOF
 #!/bin/bash
-LOCAL_APP="$HOME/.local/share/conky-manager/conky_manager.py"
-if [ -f "$LOCAL_APP" ]; then
-    exec python3 "$LOCAL_APP" "$@"
+LOCAL_APP="\$HOME/.local/share/conky-manager/conky_manager.py"
+if [ -f "\$LOCAL_APP" ]; then
+    exec $PYTHON_BIN "\$LOCAL_APP" "\$@"
 else
-    exec python3 "/opt/conky-manager/conky_manager.py" "$@"
+    exec $PYTHON_BIN "/opt/conky-manager/conky_manager.py" "\$@"
 fi
 EOF
 chmod +x "$BIN_DIR/$SCRIPT_NAME"
