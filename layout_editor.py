@@ -173,6 +173,7 @@ class LayoutEditor:
         self.root.title("Conky Layout Editor")
         self._update_geometry()
         self.root.minsize(500, 400)
+        self.root.state("zoomed")
 
         self.widgets = {}
         self.selected = None

@@ -118,9 +118,15 @@ function draw_function(cr)
 end
 
 function conky_start_widgets()
-
 	local function draw_conky_function(cr)
-		draw_function(cr)
+		local ok, err = pcall(draw_function, cr)
+		if not ok then
+			local f = io.open(os.getenv("HOME") .. "/.config/conky/weather-conky-manager/error.log", "a")
+			if f then
+				f:write(os.date("%Y-%m-%d %H:%M:%S") .. " " .. tostring(err) .. "\n")
+				f:close()
+			end
+		end
 	end
 
 	if conky_window==nil then return end
@@ -128,7 +134,10 @@ function conky_start_widgets()
 
 	local cr=cairo_create(cs)
 
-	draw_conky_function(cr)
+	local updates = conky_parse('${updates}')
+	if tonumber(updates or "0") > 5 then
+		draw_conky_function(cr)
+	end
 	cairo_surface_destroy(cs)
 	cairo_destroy(cr)
 end
