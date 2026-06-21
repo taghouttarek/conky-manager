@@ -39,7 +39,7 @@ AUTOSTART_DIR = HOME / ".config" / "autostart"
 DATA_DIR = HOME / ".local" / "share" / "conky-manager"
 SETTINGS_FILE = DATA_DIR / "settings.json"
 LOG_FILE = DATA_DIR / "manager.log"
-VERSION = "2.0.1"
+VERSION = "2.0.2"
 REPO_URL = "https://github.com/taghouti-org/conky-manager.git"
 
 # Supported archive extensions
@@ -757,18 +757,22 @@ class ConkyManagerGUI:
             self.manager.open_theme_folder(self.selected_theme)
 
     def delete_theme(self):
-        """Delete the selected theme"""
-        if self.selected_theme:
-            if messagebox.askyesno("Confirm Delete",
-                                  f"Are you sure you want to delete '{self.selected_theme['name']}'?"):
-                if self.manager.delete_theme(self.selected_theme):
-                    self.selected_theme = None
-                    self.run_btn.config(state=tk.DISABLED)
-                    self.edit_btn.config(state=tk.DISABLED)
-                    self.folder_btn.config(state=tk.DISABLED)
-                    self.delete_btn.config(state=tk.DISABLED)
-                    self.autostart_check.config(state=tk.DISABLED)
-                    self.refresh_theme_list()
+        """Delete all selected themes"""
+        themes = self.get_selected_themes()
+        if not themes:
+            return
+        names = [t['name'] for t in themes]
+        if messagebox.askyesno("Confirm Delete",
+                              f"Delete {len(themes)} theme(s)?\n\n{', '.join(names)}"):
+            for theme in themes:
+                self.manager.delete_theme(theme)
+            self.selected_theme = None
+            self.run_btn.config(state=tk.DISABLED)
+            self.edit_btn.config(state=tk.DISABLED)
+            self.folder_btn.config(state=tk.DISABLED)
+            self.delete_btn.config(state=tk.DISABLED)
+            self.autostart_check.config(state=tk.DISABLED)
+            self.refresh_theme_list()
 
     def toggle_autostart(self):
         """Toggle autostart for all selected themes"""
@@ -788,21 +792,24 @@ class ConkyManagerGUI:
             if not repo_path:
                 return
             try:
-                result = subprocess.run(['git', '-C', str(repo_path), 'status'],
-                                        capture_output=True, text=True, timeout=5)
+                # Compare VERSION file from repo
+                version_file = repo_path / "VERSION"
+                if not version_file.exists():
+                    return
+
+                result = subprocess.run(['git', '-C', str(repo_path), 'fetch', 'origin'],
+                                        capture_output=True, timeout=15)
                 if result.returncode != 0:
                     return
 
-                subprocess.run(['git', '-C', str(repo_path), 'fetch', 'origin'],
-                               capture_output=True, timeout=15)
-
+                # Get remote VERSION
                 result = subprocess.run(
-                    ['git', '-C', str(repo_path), 'rev-list', 'HEAD..origin/master', '--count'],
+                    ['git', '-C', str(repo_path), 'show', f'origin/master:VERSION'],
                     capture_output=True, text=True, timeout=10
                 )
-                count = int(result.stdout.strip()) if result.stdout.strip() else 0
+                remote_version = result.stdout.strip() if result.returncode == 0 else ""
 
-                if count > 0:
+                if remote_version and remote_version != VERSION:
                     self.has_update = True
                     self.root.after(0, self.blink_update_btn)
             except Exception:
@@ -811,15 +818,10 @@ class ConkyManagerGUI:
         threading.Thread(target=_check, daemon=True).start()
 
     def blink_update_btn(self):
-        """Blink the update button if there are updates"""
+        """Show update available on button"""
         if not self.has_update:
             return
-        current = self.update_btn.cget("text")
-        if current == "Update":
-            self.update_btn.config(text="Update (NEW)")
-        else:
-            self.update_btn.config(text="Update")
-        self.root.after(1000, self.blink_update_btn)
+        self.update_btn.config(text="Update (NEW)")
 
     def restart_manager(self):
         """Restart the manager"""
@@ -849,40 +851,88 @@ class ConkyManagerGUI:
             messagebox.showerror("Update Error", "Git repo not found")
             return
         try:
-            # Check if it's a git repo
-            result = subprocess.run(['git', '-C', str(repo_path), 'status'],
-                                    capture_output=True, text=True, timeout=10)
-            if result.returncode != 0:
-                messagebox.showerror("Update Error", "Not a git repository")
-                return
-
-            # Fetch and show what would change
             subprocess.run(['git', '-C', str(repo_path), 'fetch', 'origin'],
                            capture_output=True, timeout=30)
 
-            # Get diff stat
+            # Compare VERSION file
             result = subprocess.run(
-                ['git', '-C', str(repo_path), 'log', '--oneline', 'HEAD..origin/master'],
+                ['git', '-C', str(repo_path), 'show', f'origin/master:VERSION'],
+                capture_output=True, text=True, timeout=10
+            )
+            remote_version = result.stdout.strip() if result.returncode == 0 else ""
+
+            if not remote_version or remote_version == VERSION:
+                messagebox.showinfo("Update", "Already up to date!")
+                return
+
+            # Get new commits
+            result = subprocess.run(
+                ['git', '-C', str(repo_path), 'log', '--oneline', f'v{VERSION}..origin/master'],
                 capture_output=True, text=True, timeout=10
             )
             commits = result.stdout.strip()
 
+            # If tag doesn't exist, show all commits
             if not commits:
-                messagebox.showinfo("Update", "Already up to date!")
-                return
+                result = subprocess.run(
+                    ['git', '-C', str(repo_path), 'log', '--oneline', 'HEAD..origin/master'],
+                    capture_output=True, text=True, timeout=10
+                )
+                commits = result.stdout.strip()
 
-            # Show what will be pulled
             result = subprocess.run(
                 ['git', '-C', str(repo_path), 'diff', '--stat', 'HEAD', 'origin/master'],
                 capture_output=True, text=True, timeout=10
             )
 
-            msg = f"Found {len(commits.splitlines())} new commits:\n\n{commits}\n\nChanges:\n{result.stdout}\n\nPull to repo only (not applied to system)?"
+            msg = f"Update available: {VERSION} -> {remote_version}\n\n"
+            if commits:
+                msg += f"Commits:\n{commits}\n\n"
+            msg += f"Changes:\n{result.stdout}\n\nApply update?"
+
             if messagebox.askyesno("Update Available", msg):
                 result = subprocess.run(['git', '-C', str(repo_path), 'pull', 'origin', 'master'],
                                         capture_output=True, text=True, timeout=30)
                 if result.returncode == 0:
-                    messagebox.showinfo("Update", f"Repo updated successfully!\n\n{result.stdout}\n\nRun 'Restart Manager' to reload.")
+                    import shutil
+                    installed_dir = Path.home() / ".local" / "share" / "conky-manager"
+                    conky_config = Path.home() / ".config" / "conky"
+                    backup_dir = HOME / ".local" / "share" / "conky-manager" / "backups" / remote_version
+                    backup_dir.mkdir(parents=True, exist_ok=True)
+
+                    # Backup current manager files
+                    for f in ["conky_manager.py", "layout_editor.py"]:
+                        src = installed_dir / f
+                        if src.exists():
+                            shutil.copy2(str(src), str(backup_dir / f))
+
+                    # Backup current themes
+                    themes_backup = backup_dir / "themes"
+                    themes_backup.mkdir(exist_ok=True)
+                    for theme_dir in conky_config.iterdir():
+                        if theme_dir.is_dir() and theme_dir.name.endswith("-conky-manager"):
+                            shutil.copytree(str(theme_dir), str(themes_backup / theme_dir.name))
+
+                    # Copy manager files to installed location
+                    for f in ["conky_manager.py", "layout_editor.py"]:
+                        src = repo_path / f
+                        dst = installed_dir / f
+                        if src.exists():
+                            shutil.copy2(str(src), str(dst))
+
+                    # Copy themes to system
+                    themes_dir = repo_path / "themes"
+                    if themes_dir.exists():
+                        for theme_dir in themes_dir.iterdir():
+                            if theme_dir.is_dir() and theme_dir.name.endswith("-conky-manager"):
+                                dst = conky_config / theme_dir.name
+                                if dst.exists():
+                                    shutil.rmtree(str(dst))
+                                shutil.copytree(str(theme_dir), str(dst))
+
+                    self.has_update = False
+                    self.update_btn.config(text="Update")
+                    messagebox.showinfo("Update", f"Updated to v{remote_version}!\n\nBackup saved to: {backup_dir}\n\nRun 'Restart Manager' to reload.")
                 else:
                     messagebox.showerror("Update Error", f"Pull failed:\n{result.stderr}")
 
