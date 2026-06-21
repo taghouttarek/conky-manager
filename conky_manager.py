@@ -981,10 +981,15 @@ class ConkyManagerGUI:
             Path.home() / "repos" / "conky",
         ]
         for p in candidates:
-            result = subprocess.run(['git', '-C', str(p), 'rev-parse', '--git-dir'],
-                                    capture_output=True, timeout=5)
-            if result.returncode == 0:
-                return p
+            if not p.exists():
+                continue
+            try:
+                result = subprocess.run(['git', '-C', str(p), 'rev-parse', '--git-dir'],
+                                        capture_output=True, timeout=5)
+                if result.returncode == 0:
+                    return p
+            except (subprocess.TimeoutExpired, PermissionError, OSError):
+                continue
         return None
 
     def update_from_repo(self):
