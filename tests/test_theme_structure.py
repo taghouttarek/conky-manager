@@ -36,11 +36,7 @@ class TestThemeStructure:
         """Every theme directory must have a conkyrc file or symlink."""
         for theme_dir in get_theme_dirs():
             conkyrc = theme_dir / "conkyrc"
-            # claude-conky-manager uses conkyrc.txt instead
-            conkyrc_txt = theme_dir / "conkyrc.txt"
-            has_config = (conkyrc.exists() or conkyrc.is_symlink() or
-                         conkyrc_txt.exists() or conkyrc_txt.is_symlink())
-            assert has_config, \
+            assert conkyrc.exists() or conkyrc.is_symlink(), \
                 f"{theme_dir.name} missing conkyrc"
 
     def test_theme_naming_convention(self):
