@@ -37,7 +37,7 @@ conky.config = {
 
     default_color = 'FFFFFF',
 
-    lua_load = '~/.config/conky/crypto-conky-manager/settings.lua'
+    lua_load = '~/.config/conky/crypto-conky-manager/settings.lua',
     lua_draw_hook_pre = 'start_widgets',
 };
 

@@ -37,7 +37,7 @@ conky.config = {
 
 	uppercase = false,
 
-	lua_load = '~/.config/conky/weather-conky-manager/settings.lua'
+	lua_load = '~/.config/conky/weather-conky-manager/settings.lua',
 	lua_draw_hook_pre = 'start_widgets',
 };
 
