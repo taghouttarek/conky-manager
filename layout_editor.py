@@ -568,6 +568,10 @@ class LayoutEditor:
             self.canvas.delete(w.rect)
             self.canvas.delete(w.label)
             self.canvas.delete(w.resize_handle)
+            self.canvas.delete(w.h_btn)
+            self.canvas.delete(w.h_btn_text)
+            self.canvas.delete(w.v_btn)
+            self.canvas.delete(w.v_btn_text)
         self.widgets.clear()
         self.load_widgets()
 
