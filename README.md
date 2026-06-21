@@ -2,6 +2,17 @@
 
 A full-featured Python/Tkinter GUI for managing Conky themes on Linux.
 
+## Screenshots
+
+### Manager
+![Manager](screenshots/manager.png)
+
+### Layout Editor
+![Layout Editor](screenshots/layouts.png)
+
+### Widgets
+![Widgets](screenshots/widgets.png)
+
 ## Features
 
 - **Theme Discovery** - Automatically scans `~/.config/conky/` for themes
