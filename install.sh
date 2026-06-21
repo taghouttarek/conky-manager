@@ -8,6 +8,7 @@ BIN_DIR="$HOME/.local/bin"
 SCRIPT_NAME="conky-manager"
 DESKTOP_FILE="$HOME/.local/share/applications/conky-manager.desktop"
 ICON_DIR="$HOME/.local/share/icons"
+REPO_DIR="$(cd "$(dirname "$0")" && pwd)"
 
 echo "Installing Conky Manager..."
 
@@ -16,24 +17,62 @@ mkdir -p "$INSTALL_DIR"
 mkdir -p "$BIN_DIR"
 mkdir -p "$HOME/.local/share/applications"
 mkdir -p "$ICON_DIR"
+mkdir -p "$HOME/.config/conky"
 
-# Copy script
-cp "$(dirname "$0")/conky_manager.py" "$INSTALL_DIR/conky_manager.py"
+# Copy manager files
+cp "$REPO_DIR/conky_manager.py" "$INSTALL_DIR/conky_manager.py"
 chmod +x "$INSTALL_DIR/conky_manager.py"
 
-# Copy themes
-if [ -d "$(dirname "$0")/themes" ]; then
-    mkdir -p "$HOME/.config/conky"
-    cp -r "$(dirname "$0")/themes/"* "$HOME/.config/conky/"
+if [ -f "$REPO_DIR/layout_editor.py" ]; then
+    cp "$REPO_DIR/layout_editor.py" "$INSTALL_DIR/layout_editor.py"
+fi
+
+if [ -f "$REPO_DIR/VERSION" ]; then
+    cp "$REPO_DIR/VERSION" "$INSTALL_DIR/VERSION"
+fi
+
+# Backup existing themes before overwrite
+BACKUP_DIR="$INSTALL_DIR/backups/$(date +%Y%m%d_%H%M%S)"
+if ls "$HOME/.config/conky/"*-conky-manager 1>/dev/null 2>&1; then
+    mkdir -p "$BACKUP_DIR"
+    for theme_dir in "$HOME/.config/conky/"*-conky-manager; do
+        if [ -d "$theme_dir" ]; then
+            cp -r "$theme_dir" "$BACKUP_DIR/"
+        fi
+    done
+    echo "Backup saved to $BACKUP_DIR"
+fi
+
+# Copy only *-conky-manager themes
+if [ -d "$REPO_DIR/themes" ]; then
+    for theme_dir in "$REPO_DIR/themes/"*-conky-manager; do
+        if [ -d "$theme_dir" ]; then
+            theme_name=$(basename "$theme_dir")
+            rm -rf "$HOME/.config/conky/$theme_name"
+            cp -r "$theme_dir" "$HOME/.config/conky/$theme_name"
+        fi
+    done
     echo "Themes installed to ~/.config/conky/"
 fi
 
+# Copy non-conky-manager themes (calendar, revisited, etc.)
+for theme_dir in "$REPO_DIR/themes/"*/; do
+    theme_name=$(basename "$theme_dir")
+    if [ -d "$theme_dir" ] && [[ ! "$theme_name" == *"-conky-manager" ]]; then
+        # Skip if already handled or is the old system-widgets
+        if [ "$theme_name" != "system-widgets" ] && [ "$theme_name" != "conkyrc" ]; then
+            rm -rf "$HOME/.config/conky/$theme_name"
+            cp -r "$theme_dir" "$HOME/.config/conky/$theme_name"
+        fi
+    fi
+done
+
 # Copy icon
-if [ -f "$(dirname "$0")/icon.svg" ]; then
-    cp "$(dirname "$0")/icon.svg" "$INSTALL_DIR/icon.svg"
+if [ -f "$REPO_DIR/icon.svg" ]; then
+    cp "$REPO_DIR/icon.svg" "$INSTALL_DIR/icon.svg"
 fi
-if [ -f "$(dirname "$0")/icon.png" ]; then
-    cp "$(dirname "$0")/icon.png" "$INSTALL_DIR/icon.png"
+if [ -f "$REPO_DIR/icon.png" ]; then
+    cp "$REPO_DIR/icon.png" "$INSTALL_DIR/icon.png"
 fi
 
 # Create wrapper script in ~/.local/bin
