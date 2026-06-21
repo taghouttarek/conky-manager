@@ -41,7 +41,7 @@ AUTOSTART_DIR = HOME / ".config" / "autostart"
 DATA_DIR = HOME / ".local" / "share" / "conky-manager"
 SETTINGS_FILE = DATA_DIR / "settings.json"
 LOG_FILE = DATA_DIR / "manager.log"
-VERSION = "2.0.9"
+VERSION = "2.1.0"
 REPO_URL = "https://github.com/taghouti-org/conky-manager.git"
 
 # Supported archive extensions
@@ -1022,7 +1022,7 @@ class ConkyManagerGUI:
             )
             changes = result.stdout.strip()
 
-            # Get commit messages with details
+            # Get commit messages
             result = subprocess.run(
                 ['git', '-C', str(repo_path), 'log', '--format=%h %s', f'HEAD..origin/master'],
                 capture_output=True, text=True, timeout=10
@@ -1031,11 +1031,9 @@ class ConkyManagerGUI:
 
             msg = f"Update: {VERSION} -> {remote_version}\n\n"
             if details:
-                msg += f"Changes:\n{details}\n\n"
+                msg += f"Commits:\n{details}\n\n"
             else:
                 msg += "No new commits found.\n\n"
-            if changes:
-                msg += f"Files:\n{changes}\n\n"
             msg += "Apply update?"
 
             if messagebox.askyesno("Update Available", msg):
