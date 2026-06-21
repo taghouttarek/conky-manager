@@ -1037,7 +1037,12 @@ class ConkyManagerGUI:
             msg += "Apply update?"
 
             if messagebox.askyesno("Update Available", msg):
-                result = subprocess.run(['git', '-C', str(repo_path), 'pull', 'origin', 'master'],
+                result = subprocess.run(['git', '-C', str(repo_path), 'fetch', 'origin'],
+                                        capture_output=True, text=True, timeout=30)
+                if result.returncode != 0:
+                    messagebox.showerror("Update Error", f"Fetch failed:\n{result.stderr}")
+                    return
+                result = subprocess.run(['git', '-C', str(repo_path), 'reset', '--hard', 'origin/master'],
                                         capture_output=True, text=True, timeout=30)
                 if result.returncode == 0:
                     import shutil
