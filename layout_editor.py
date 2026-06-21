@@ -209,6 +209,7 @@ class LayoutEditor:
         ttk.Button(toolbar, text="Save", command=self.save).pack(side=tk.LEFT, padx=2)
         ttk.Button(toolbar, text="Reset", command=self.reset).pack(side=tk.LEFT, padx=2)
         ttk.Button(toolbar, text="Apply", command=self.apply_positions).pack(side=tk.LEFT, padx=2)
+        ttk.Button(toolbar, text="Center All", command=self.center_all).pack(side=tk.LEFT, padx=2)
 
         ttk.Separator(toolbar, orient=tk.VERTICAL).pack(side=tk.LEFT, fill=tk.Y, padx=5)
 
@@ -519,6 +520,20 @@ class LayoutEditor:
             self.canvas.delete(w.resize_handle)
         self.widgets.clear()
         self.load_widgets()
+
+    def center_all(self):
+        if not self.widgets:
+            return
+        min_x = min(w.x for w in self.widgets.values())
+        min_y = min(w.y for w in self.widgets.values())
+        max_x = max(w.x + w.w for w in self.widgets.values())
+        max_y = max(w.y + w.h for w in self.widgets.values())
+        bw = max_x - min_x
+        bh = max_y - min_y
+        offset_x = (self.screen_w - bw) / 2 - min_x
+        offset_y = (self.screen_h - bh) / 2 - min_y
+        for w in self.widgets.values():
+            w.move(offset_x, offset_y)
 
     def apply_positions(self):
         self.save()
