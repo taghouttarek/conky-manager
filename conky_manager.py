@@ -1125,24 +1125,42 @@ class ConkyManagerGUI:
                         if src.exists():
                             shutil.copy2(str(src), str(dst))
 
-                    # Copy themes to system (preserve user settings)
+                    # Copy themes to system (preserve only user config values, not code)
                     themes_dir = repo_path / "themes"
                     if themes_dir.exists():
+                        # User-configurable keys to preserve per theme
+                        preserve_keys = {
+                            "weather-conky-manager": ["api_key", "city", "country_code"],
+                            "bandwidth-conky-manager": ["iface"],
+                            "crypto-conky-manager": ["coin_id", "currency", "coin_symbol", "chart_days"],
+                        }
                         for theme_dir in themes_dir.iterdir():
                             if theme_dir.is_dir() and theme_dir.name.endswith("-conky-manager"):
                                 dst = conky_config / theme_dir.name
-                                # Preserve user-customized settings.lua before overwrite
-                                preserved = {}
+                                # Extract user config values from existing settings.lua
+                                user_config = {}
+                                sf = dst / "settings.lua" if dst.exists() else None
+                                if sf and sf.exists():
+                                    old_content = sf.read_text()
+                                    for key in preserve_keys.get(theme_dir.name, []):
+                                        match = re.search(rf'{key}\s*=\s*"([^"]*)"', old_content)
+                                        if match:
+                                            user_config[key] = match.group(1)
+                                # Replace theme directory
                                 if dst.exists():
-                                    for preserve_file in ["settings.lua"]:
-                                        pf = dst / preserve_file
-                                        if pf.exists():
-                                            preserved[preserve_file] = pf.read_text()
                                     shutil.rmtree(str(dst))
                                 shutil.copytree(str(theme_dir), str(dst))
-                                # Restore user-customized settings
-                                for fname, content in preserved.items():
-                                    (dst / fname).write_text(content)
+                                # Re-apply user config values to the new settings.lua
+                                new_sf = dst / "settings.lua"
+                                if new_sf.exists() and user_config:
+                                    new_content = new_sf.read_text()
+                                    for key, val in user_config.items():
+                                        new_content = re.sub(
+                                            rf'({key}\s*=\s*")[^"]*"',
+                                            rf'\g<1>{val}"',
+                                            new_content
+                                        )
+                                    new_sf.write_text(new_content)
 
                     self.has_update = False
                     self.update_btn.configure(text="Update")
