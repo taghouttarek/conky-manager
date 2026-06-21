@@ -51,7 +51,7 @@ A full-featured Python/Tkinter GUI for managing Conky themes on Linux.
 
 ```bash
 # Download and install
-sudo dpkg -i conky-manager_2.0.3_all.deb
+sudo dpkg -i conky-manager_2.0.4_all.deb
 sudo apt install -f  # Fix dependencies if needed
 ```
 
@@ -140,7 +140,7 @@ The layout editor provides a visual interface for positioning widgets:
 - **Resize Mode** - Drag corners to resize
 - **Zoom +/-** - Zoom in/out for precision
 - **Save** - Save positions to layout.json
-- **Apply** - Save and update theme configs
+- **Apply** - Update gap_x/gap_y in conkyrc AND x/y in settings.lua, then restart themes
 
 ### Auto-Update
 
@@ -174,6 +174,17 @@ ${cpu}%
 
 - `xftfont` → use `font`
 - `minimum_size W H` → use `minimum_width = W,` and `minimum_height = H,`
+
+## Unified Widget Positioning
+
+All themes use the same positioning model:
+
+1. **Fullscreen window** (1920x1080) with `alignment = 'top_left'`, `gap_x = 0`, `gap_y = 0`
+2. **Absolute screen coordinates** in Lua (`local x = N`, `local y = N`)
+3. **Layout editor** updates both `gap_x`/`gap_y` in conkyrc and `x`/`y` in settings.lua
+4. **Auto-restart** after applying positions so changes take effect
+
+This ensures the same logic works for all themes (system widgets, calendar, weather, revisited, etc.).
 
 ## Uninstall
 
