@@ -51,7 +51,7 @@ A full-featured Python/Tkinter GUI for managing Conky themes on Linux.
 
 ```bash
 # Download and install
-sudo dpkg -i conky-manager_2.0.4_all.deb
+sudo dpkg -i conky-manager_2.0.5_all.deb
 sudo apt install -f  # Fix dependencies if needed
 ```
 
