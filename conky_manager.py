@@ -554,6 +554,9 @@ class ConkyManagerGUI:
         self.stop_theme_btn = ttk.Button(button_frame, text="Stop Theme", command=self.stop_theme, state=tk.DISABLED)
         self.stop_theme_btn.pack(side=tk.LEFT, padx=2)
 
+        self.restart_theme_btn = ttk.Button(button_frame, text="Restart Theme", command=self.restart_theme, state=tk.DISABLED)
+        self.restart_theme_btn.pack(side=tk.LEFT, padx=2)
+
         self.stop_btn = ttk.Button(button_frame, text="Stop All", command=self.stop_conky)
         self.stop_btn.pack(side=tk.LEFT, padx=2)
 
@@ -629,6 +632,7 @@ class ConkyManagerGUI:
                         self.autostart_check.config(state=tk.NORMAL)
                         is_running = self.manager.is_theme_running(self.selected_theme)
                         self.stop_theme_btn.config(state=tk.NORMAL if is_running else tk.DISABLED)
+                        self.restart_theme_btn.config(state=tk.NORMAL if is_running else tk.DISABLED)
                         self.autostart_var.set(self.manager.is_autostart(self.selected_theme))
                     break
 
@@ -650,6 +654,7 @@ class ConkyManagerGUI:
                 # Enable/disable stop theme button based on running status
                 is_running = self.manager.is_theme_running(self.selected_theme)
                 self.stop_theme_btn.config(state=tk.NORMAL if is_running else tk.DISABLED)
+                self.restart_theme_btn.config(state=tk.NORMAL if is_running else tk.DISABLED)
 
                 # Check if autostart
                 self.autostart_var.set(self.manager.is_autostart(self.selected_theme))
@@ -697,6 +702,14 @@ class ConkyManagerGUI:
         self.update_status()
         self.refresh_theme_list()
         self.stop_theme_btn.config(state=tk.DISABLED)
+
+    def restart_theme(self):
+        """Restart the selected theme"""
+        if self.selected_theme:
+            self.manager.stop_theme(self.selected_theme)
+            self.manager.start_conky(self.selected_theme)
+            self.update_status()
+            self.refresh_theme_list()
 
     def restart_all(self):
         """Restart all currently running themes"""
