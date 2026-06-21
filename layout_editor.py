@@ -261,8 +261,8 @@ class LayoutEditor:
 
     def setup_ui(self):
         # Toolbar
-        toolbar = ctk.CTkFrame(self.root, fg_color="transparent")
-        toolbar.pack(fill="x", padx=5, pady=5)
+        toolbar = ctk.CTkFrame(self.root, fg_color="transparent", corner_radius=0)
+        toolbar.pack(fill="x", padx=5, pady=(2, 2))
 
         ctk.CTkButton(toolbar, text="Save", command=self.save, width=60, height=28).pack(side="left", padx=2)
         ctk.CTkButton(toolbar, text="Reset", command=self.reset, width=60, height=28).pack(side="left", padx=2)

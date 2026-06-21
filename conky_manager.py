@@ -515,11 +515,11 @@ class ConkyManagerGUI:
         """Setup the user interface"""
         # Main container
         main_frame = ctk.CTkFrame(self.root)
-        main_frame.pack(fill="both", expand=True, padx=10, pady=10)
+        main_frame.pack(fill="both", expand=True, padx=10, pady=5)
 
         # Header
         header_frame = ctk.CTkFrame(main_frame, fg_color="transparent")
-        header_frame.pack(fill="x", pady=(0, 10))
+        header_frame.pack(fill="x", pady=(0, 5))
 
         ctk.CTkLabel(header_frame, text=f"Conky Manager v{VERSION}", font=('Helvetica', 16, 'bold')).pack(side="left")
 
@@ -531,7 +531,7 @@ class ConkyManagerGUI:
 
         # Toolbar
         toolbar_frame = ctk.CTkFrame(main_frame, fg_color="transparent")
-        toolbar_frame.pack(fill="x", pady=(0, 10))
+        toolbar_frame.pack(fill="x", pady=(0, 5))
 
         ctk.CTkButton(toolbar_frame, text="Refresh", command=self.refresh_theme_list, width=90, height=28).pack(side="left", padx=2)
         ctk.CTkButton(toolbar_frame, text="Import Archive", command=self.import_archive, width=110, height=28).pack(side="left", padx=2)
@@ -559,7 +559,7 @@ class ConkyManagerGUI:
 
         # Theme list
         list_frame = ctk.CTkFrame(main_frame)
-        list_frame.pack(fill="both", expand=True, pady=(0, 10))
+        list_frame.pack(fill="both", expand=True, pady=(0, 5))
 
         # Treeview (keep ttk.Treeview, style for dark mode)
         style = ttk.Style()
@@ -632,7 +632,7 @@ class ConkyManagerGUI:
 
         # Info frame
         info_frame = ctk.CTkFrame(main_frame)
-        info_frame.pack(fill="x", pady=(10, 0))
+        info_frame.pack(fill="x", pady=(5, 0))
 
         ctk.CTkLabel(info_frame, text="Theme Info", font=('Helvetica', 12, 'bold')).pack(anchor="w", padx=5, pady=(5, 0))
 
