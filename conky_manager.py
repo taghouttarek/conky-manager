@@ -481,8 +481,8 @@ class ConkyManagerGUI:
     def __init__(self, root):
         self.root = root
         self.root.title(f"Conky Manager v{VERSION}")
-        self.root.geometry("800x600")
-        self.root.minsize(700, 500)
+        self.root.geometry("1100x600")
+        self.root.minsize(900, 500)
 
         # Set window icon
         self.set_window_icon()
