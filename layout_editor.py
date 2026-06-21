@@ -11,9 +11,14 @@ import time
 from pathlib import Path
 
 LAYOUT_FILE = Path.home() / ".config" / "conky" / "layout.json"
-SCREEN_W = 1920
-SCREEN_H = 1080
-SCALE = 0.5  # Canvas scale factor (adjusted by zoom)
+DEFAULT_SCREEN_W = 1920
+DEFAULT_SCREEN_H = 1080
+DEFAULT_SCALE = 0.5
+RESOLUTION_PRESETS = ["1920x1080", "2560x1440", "3840x2160", "Custom"]
+MIN_SCREEN_W = 800
+MIN_SCREEN_H = 600
+MAX_SCREEN_W = 7680
+MAX_SCREEN_H = 4320
 
 
 def load_layout():
@@ -35,7 +40,9 @@ def save_layout(data):
 
 
 class WidgetRect:
-    def __init__(self, canvas, name, x, y, w, h, color="#ffffff"):
+    def __init__(self, canvas, name, x, y, w, h, color="#ffffff",
+                 screen_w=DEFAULT_SCREEN_W, screen_h=DEFAULT_SCREEN_H,
+                 scale=DEFAULT_SCALE):
         self.canvas = canvas
         self.name = name
         self.x = x
@@ -43,6 +50,9 @@ class WidgetRect:
         self.w = w
         self.h = h
         self.color = color
+        self.screen_w = screen_w
+        self.screen_h = screen_h
+        self.scale = scale
         self.rect = None
         self.label = None
         self.resize_handle = None
@@ -51,20 +61,19 @@ class WidgetRect:
         self.draw()
 
     def draw(self):
-        sx, sy, sw, sh = self.x * SCALE, self.y * SCALE, self.w * SCALE, self.h * SCALE
-        # Widget rectangle
+        s = self.scale
+        sx, sy = self.x * s, self.y * s
+        sw, sh = self.w * s, self.h * s
         self.rect = self.canvas.create_rectangle(
             sx, sy, sx + sw, sy + sh,
             fill=self.color, outline="#888888", width=1, stipple="gray25",
             tags=("widget", self.name)
         )
-        # Label
         self.label = self.canvas.create_text(
             sx + sw / 2, sy + sh / 2,
             text=self.name, fill="white", font=("Dejavu Sans", 8, "bold"),
             tags=("widget_label", self.name)
         )
-        # Resize handle (bottom-right corner)
         hr = 5
         self.resize_handle = self.canvas.create_rectangle(
             sx + sw - hr, sy + sh - hr, sx + sw + hr, sy + sh + hr,
@@ -73,26 +82,31 @@ class WidgetRect:
         )
 
     def update_position(self):
-        sx, sy, sw, sh = self.x * SCALE, self.y * SCALE, self.w * SCALE, self.h * SCALE
+        s = self.scale
+        sx, sy = self.x * s, self.y * s
+        sw, sh = self.w * s, self.h * s
         self.canvas.coords(self.rect, sx, sy, sx + sw, sy + sh)
         self.canvas.coords(self.label, sx + sw / 2, sy + sh / 2)
         hr = 5
-        self.canvas.coords(self.resize_handle, sx + sw - hr, sy + sh - hr, sx + sw + hr, sy + sh + hr)
+        self.canvas.coords(self.resize_handle,
+                           sx + sw - hr, sy + sh - hr,
+                           sx + sw + hr, sy + sh + hr)
 
     def move(self, dx, dy):
-        self.x = max(0, min(SCREEN_W - self.w, self.x + dx))
-        self.y = max(0, min(SCREEN_H - self.h, self.y + dy))
+        self.x = max(0, min(self.screen_w - self.w, self.x + dx))
+        self.y = max(0, min(self.screen_h - self.h, self.y + dy))
         self.update_position()
 
     def resize(self, dx, dy):
         new_w = max(100, self.w + dx)
         new_h = max(50, self.h + dy)
-        self.w = min(new_w, SCREEN_W - self.x)
-        self.h = min(new_h, SCREEN_H - self.y)
+        self.w = min(new_w, self.screen_w - self.x)
+        self.h = min(new_h, self.screen_h - self.y)
         self.update_position()
 
     def to_dict(self):
-        return {"x": int(self.x), "y": int(self.y), "w": int(self.w), "h": int(self.h)}
+        return {"x": int(self.x), "y": int(self.y),
+                "w": int(self.w), "h": int(self.h)}
 
 
 class LayoutEditor:
@@ -100,18 +114,21 @@ class LayoutEditor:
         self.standalone = parent is None
         self.root = tk.Tk() if self.standalone else tk.Toplevel(parent)
 
-        global SCREEN_W, SCREEN_H
+        self.screen_w = DEFAULT_SCREEN_W
+        self.screen_h = DEFAULT_SCREEN_H
+        self.scale = DEFAULT_SCALE
+
         try:
             sw = self.root.winfo_screenwidth()
             sh = self.root.winfo_screenheight()
             if sw > 0 and sh > 0:
-                SCREEN_W = sw
-                SCREEN_H = sh
+                self.screen_w = sw
+                self.screen_h = sh
         except Exception:
             pass
 
         self.root.title("Conky Layout Editor")
-        self.root.geometry(f"{int(SCREEN_W * SCALE) + 60}x{int(SCREEN_H * SCALE) + 120}")
+        self._update_geometry()
         self.root.minsize(500, 400)
 
         self.widgets = {}
@@ -124,8 +141,12 @@ class LayoutEditor:
         if self.standalone:
             self.root.mainloop()
 
+    def _update_geometry(self):
+        w = int(self.screen_w * self.scale) + 60
+        h = int(self.screen_h * self.scale) + 120
+        self.root.geometry(f"{w}x{h}")
+
     def setup_ui(self):
-        global SCALE
         # Toolbar
         toolbar = ttk.Frame(self.root)
         toolbar.pack(fill=tk.X, padx=5, pady=5)
@@ -137,7 +158,7 @@ class LayoutEditor:
         ttk.Separator(toolbar, orient=tk.VERTICAL).pack(side=tk.LEFT, fill=tk.Y, padx=5)
 
         ttk.Button(toolbar, text="-", command=self.zoom_out, width=3).pack(side=tk.LEFT, padx=2)
-        self.zoom_label = ttk.Label(toolbar, text=f"{int(SCALE * 100)}%")
+        self.zoom_label = ttk.Label(toolbar, text=f"{int(self.scale * 100)}%")
         self.zoom_label.pack(side=tk.LEFT, padx=2)
         ttk.Button(toolbar, text="+", command=self.zoom_in, width=3).pack(side=tk.LEFT, padx=2)
 
@@ -145,8 +166,31 @@ class LayoutEditor:
         ttk.Radiobutton(toolbar, text="Move", variable=self.mode_var, value="move").pack(side=tk.LEFT, padx=10)
         ttk.Radiobutton(toolbar, text="Resize", variable=self.mode_var, value="resize").pack(side=tk.LEFT, padx=2)
 
-        # Screen label
-        ttk.Label(toolbar, text=f"Screen: {SCREEN_W}x{SCREEN_H}").pack(side=tk.RIGHT, padx=5)
+        ttk.Separator(toolbar, orient=tk.VERTICAL).pack(side=tk.LEFT, fill=tk.Y, padx=5)
+
+        # Resolution preset dropdown
+        self.resolution_var = tk.StringVar(value=self._current_preset())
+        self.resolution_combo = ttk.Combobox(
+            toolbar, textvariable=self.resolution_var,
+            values=RESOLUTION_PRESETS, width=12, state="readonly"
+        )
+        self.resolution_combo.pack(side=tk.LEFT, padx=2)
+        self.resolution_combo.bind("<<ComboboxSelected>>", self._on_preset_change)
+
+        # Width/Height entry fields
+        ttk.Label(toolbar, text="W:").pack(side=tk.LEFT, padx=(8, 2))
+        self.width_var = tk.StringVar(value=str(self.screen_w))
+        self.width_entry = ttk.Entry(toolbar, textvariable=self.width_var, width=6)
+        self.width_entry.pack(side=tk.LEFT, padx=2)
+        self.width_entry.bind("<Return>", self._on_resolution_entry)
+        self.width_entry.bind("<FocusOut>", self._on_resolution_entry)
+
+        ttk.Label(toolbar, text="H:").pack(side=tk.LEFT, padx=(4, 2))
+        self.height_var = tk.StringVar(value=str(self.screen_h))
+        self.height_entry = ttk.Entry(toolbar, textvariable=self.height_var, width=6)
+        self.height_entry.pack(side=tk.LEFT, padx=2)
+        self.height_entry.bind("<Return>", self._on_resolution_entry)
+        self.height_entry.bind("<FocusOut>", self._on_resolution_entry)
 
         # Canvas
         canvas_frame = ttk.Frame(self.root)
@@ -154,24 +198,84 @@ class LayoutEditor:
 
         self.canvas = tk.Canvas(
             canvas_frame,
-            width=int(SCREEN_W * SCALE),
-            height=int(SCREEN_H * SCALE),
+            width=int(self.screen_w * self.scale),
+            height=int(self.screen_h * self.scale),
             bg="#1a1a2e", highlightthickness=1, highlightbackground="#444444"
         )
         self.canvas.pack(fill=tk.BOTH, expand=True)
 
         # Grid lines
-        for x in range(0, SCREEN_W, 100):
-            sx = x * SCALE
-            self.canvas.create_line(sx, 0, sx, SCREEN_H * SCALE, fill="#333333", dash=(2, 4))
-        for y in range(0, SCREEN_H, 100):
-            sy = y * SCALE
-            self.canvas.create_line(0, sy, SCREEN_W * SCALE, sy, fill="#333333", dash=(2, 4))
+        self._draw_grid()
 
         # Bindings
         self.canvas.bind("<ButtonPress-1>", self.on_press)
         self.canvas.bind("<B1-Motion>", self.on_drag)
         self.canvas.bind("<ButtonRelease-1>", self.on_release)
+
+    def _draw_grid(self):
+        sw = int(self.screen_w * self.scale)
+        sh = int(self.screen_h * self.scale)
+        for x in range(0, self.screen_w, 100):
+            sx = x * self.scale
+            self.canvas.create_line(sx, 0, sx, sh, fill="#333333", dash=(2, 4))
+        for y in range(0, self.screen_h, 100):
+            sy = y * self.scale
+            self.canvas.create_line(0, sy, sw, sy, fill="#333333", dash=(2, 4))
+
+    def _current_preset(self):
+        key = f"{self.screen_w}x{self.screen_h}"
+        if key in RESOLUTION_PRESETS:
+            return key
+        return "Custom"
+
+    def _on_preset_change(self, event=None):
+        preset = self.resolution_var.get()
+        if preset == "Custom":
+            return
+        w, h = preset.split("x")
+        self._change_resolution(int(w), int(h))
+
+    def _on_resolution_entry(self, event=None):
+        try:
+            w = int(self.width_var.get().strip())
+            h = int(self.height_var.get().strip())
+        except ValueError:
+            self.width_var.set(str(self.screen_w))
+            self.height_var.set(str(self.screen_h))
+            return
+        w = max(MIN_SCREEN_W, min(MAX_SCREEN_W, w))
+        h = max(MIN_SCREEN_H, min(MAX_SCREEN_H, h))
+        self._change_resolution(w, h)
+
+    def _change_resolution(self, new_w, new_h):
+        if new_w == self.screen_w and new_h == self.screen_h:
+            return
+        old_w, old_h = self.screen_w, self.screen_h
+        sx = new_w / old_w
+        sy = new_h / old_h
+
+        # Proportionally rescale all widgets
+        for widget in self.widgets.values():
+            widget.x = int(widget.x * sx)
+            widget.y = int(widget.y * sy)
+            widget.w = int(widget.w * sx)
+            widget.h = int(widget.h * sy)
+            widget.screen_w = new_w
+            widget.screen_h = new_h
+
+        self.screen_w = new_w
+        self.screen_h = new_h
+
+        # Update UI
+        self.width_var.set(str(new_w))
+        self.height_var.set(str(new_h))
+        preset = f"{new_w}x{new_h}"
+        if preset in RESOLUTION_PRESETS:
+            self.resolution_var.set(preset)
+        else:
+            self.resolution_var.set("Custom")
+
+        self.redraw_canvas()
 
     def get_running_themes(self):
         """Get list of currently running theme directory names"""
@@ -181,11 +285,9 @@ class LayoutEditor:
             for line in result.stdout.splitlines():
                 parts = line.split()
                 if len(parts) > 1:
-                    # Find -c argument
                     for i, part in enumerate(parts):
                         if part == '-c' and i + 1 < len(parts):
                             config_path = parts[i + 1]
-                            # Extract theme name from path like /home/user/.config/conky/theme-name/conkyrc
                             parts_path = config_path.split('/')
                             if 'conky' in parts_path:
                                 idx = parts_path.index('conky')
@@ -198,6 +300,21 @@ class LayoutEditor:
 
     def load_widgets(self):
         layout = load_layout()
+
+        # Load resolution from layout
+        res = layout.get("resolution")
+        if res:
+            self.screen_w = res.get("w", self.screen_w)
+            self.screen_h = res.get("h", self.screen_h)
+            self.width_var.set(str(self.screen_w))
+            self.height_var.set(str(self.screen_h))
+            preset = f"{self.screen_w}x{self.screen_h}"
+            if preset in RESOLUTION_PRESETS:
+                self.resolution_var.set(preset)
+            else:
+                self.resolution_var.set("Custom")
+            self._update_geometry()
+
         running = self.get_running_themes()
         default_widgets = {
             "crypto-conky-manager": {"x": 30, "y": 720, "w": 250, "h": 250, "color": "#e94560"},
@@ -225,18 +342,19 @@ class LayoutEditor:
                 pos.get("w", defaults["w"]),
                 pos.get("h", defaults["h"]),
                 pos.get("color", defaults["color"]),
+                screen_w=self.screen_w,
+                screen_h=self.screen_h,
+                scale=self.scale,
             )
 
     def on_press(self, event):
         self.drag_data = {"x": event.x, "y": event.y}
-        # Find clicked widget
         items = self.canvas.find_overlapping(event.x - 5, event.y - 5, event.x + 5, event.y + 5)
         for item in items:
             tags = self.canvas.gettags(item)
             for tag in tags:
                 if tag in self.widgets:
                     self.selected = tag
-                    # Check if clicking resize handle
                     if "resize_handle" in tags:
                         self.mode_var.set("resize")
                     return
@@ -245,8 +363,8 @@ class LayoutEditor:
     def on_drag(self, event):
         if not self.selected or self.selected not in self.widgets:
             return
-        dx = (event.x - self.drag_data["x"]) / SCALE
-        dy = (event.y - self.drag_data["y"]) / SCALE
+        dx = (event.x - self.drag_data["x"]) / self.scale
+        dy = (event.y - self.drag_data["y"]) / self.scale
         self.drag_data = {"x": event.x, "y": event.y}
 
         widget = self.widgets[self.selected]
@@ -259,43 +377,41 @@ class LayoutEditor:
         self.drag_data = {"x": 0, "y": 0}
 
     def zoom_in(self):
-        global SCALE
-        SCALE = min(1.5, SCALE + 0.1)
+        self.scale = min(1.5, self.scale + 0.1)
         self.redraw_canvas()
 
     def zoom_out(self):
-        global SCALE
-        SCALE = max(0.2, SCALE - 0.1)
+        self.scale = max(0.2, self.scale - 0.1)
         self.redraw_canvas()
 
     def redraw_canvas(self):
-        self.zoom_label.config(text=f"{int(SCALE * 100)}%")
+        self.zoom_label.config(text=f"{int(self.scale * 100)}%")
         # Save current positions
         saved = {}
         for name, w in self.widgets.items():
             saved[name] = (w.x, w.y, w.w, w.h, w.color)
         # Resize canvas
-        new_w = int(SCREEN_W * SCALE)
-        new_h = int(SCREEN_H * SCALE)
+        new_w = int(self.screen_w * self.scale)
+        new_h = int(self.screen_h * self.scale)
         self.canvas.config(width=new_w, height=new_h)
         self.root.geometry(f"{new_w + 60}x{new_h + 120}")
         # Clear and redraw
         self.canvas.delete("all")
         self.selected = None
-        # Grid lines
-        for x in range(0, SCREEN_W, 100):
-            sx = x * SCALE
-            self.canvas.create_line(sx, 0, sx, new_h, fill="#333333", dash=(2, 4))
-        for y in range(0, SCREEN_H, 100):
-            sy = y * SCALE
-            self.canvas.create_line(0, sy, new_w, sy, fill="#333333", dash=(2, 4))
+        self._draw_grid()
         # Redraw widgets
         self.widgets.clear()
         for name, (x, y, w, h, color) in saved.items():
-            self.widgets[name] = WidgetRect(self.canvas, name, x, y, w, h, color)
+            self.widgets[name] = WidgetRect(
+                self.canvas, name, x, y, w, h, color,
+                screen_w=self.screen_w, screen_h=self.screen_h,
+                scale=self.scale
+            )
 
     def save(self):
-        layout = {}
+        layout = {
+            "resolution": {"w": self.screen_w, "h": self.screen_h}
+        }
         for name, widget in self.widgets.items():
             layout[name] = widget.to_dict()
         save_layout(layout)
@@ -322,7 +438,7 @@ class LayoutEditor:
                 for lua_file in theme_dir.rglob("*.lua"):
                     self.update_lua_position(lua_file, widget)
 
-                # Update conkyrc (gap_x/gap_y)
+                # Update conkyrc (gap_x/gap_y, minimum_width/minimum_height)
                 conkyrc = theme_dir / "conkyrc"
                 if conkyrc.exists():
                     self.update_conkyrc_position(conkyrc, widget)
@@ -347,6 +463,16 @@ class LayoutEditor:
         new_content = re.sub(
             r'(gap_y\s*=\s*)-?\d+',
             f'\\g<1>{int(widget.y)}',
+            new_content
+        )
+        new_content = re.sub(
+            r'(minimum_width\s*=\s*)-?\d+',
+            f'\\g<1>{int(self.screen_w)}',
+            new_content
+        )
+        new_content = re.sub(
+            r'(minimum_height\s*=\s*)-?\d+',
+            f'\\g<1>{int(self.screen_h)}',
             new_content
         )
 
