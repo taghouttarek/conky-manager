@@ -34,7 +34,7 @@ MIN_WIDGET_SIZES = {
 }
 MAX_SCREEN_W = 7680
 MAX_SCREEN_H = 4320
-SNAP_THRESHOLD = 4
+SNAP_THRESHOLD = 2
 GUIDE_COLOR = "#ff0000"
 GUIDE_DASH = (4, 4)
 
@@ -677,58 +677,55 @@ class LayoutEditor:
         candidate_y = dw.y + snap_y
         candidate_right = candidate_x + dw.w
         candidate_bottom = candidate_y + dw.h
-        candidate_cx = candidate_x + dw.w / 2
-        candidate_cy = candidate_y + dw.h / 2
 
         others = [(n, w) for n, w in self.widgets.items()
                   if n != dragged_name and n not in self.selected]
-        h_gaps = []
-        v_gaps = []
-        for n, ow in others:
-            if ow.x >= dw.x + dw.w:
-                h_gaps.append(("right", ow.x - (dw.x + dw.w)))
-            if ow.x + ow.w <= dw.x:
-                h_gaps.append(("left", dw.x - (ow.x + ow.w)))
-            if ow.y >= dw.y + dw.h:
-                v_gaps.append(("bottom", ow.y - (dw.y + dw.h)))
-            if ow.y + ow.h <= dw.y:
-                v_gaps.append(("top", dw.y - (ow.y + ow.h)))
 
-        for i, (_, g1) in enumerate(h_gaps):
-            for j, (_, g2) in enumerate(h_gaps):
-                if i < j and abs(g1 - g2) < 1:
-                    for edge, gap in h_gaps:
-                        if abs(gap - g1) < 1:
-                            pass
+        ref_gaps_h = set()
+        ref_gaps_v = set()
+        sorted_others_x = sorted(others, key=lambda nw: nw[1].x)
+        sorted_others_y = sorted(others, key=lambda nw: nw[1].y)
+        for i in range(len(sorted_others_x) - 1):
+            _, a = sorted_others_x[i]
+            _, b = sorted_others_x[i + 1]
+            gap = b.x - (a.x + a.w)
+            if gap > 0:
+                ref_gaps_h.add(round(gap))
+        for i in range(len(sorted_others_y) - 1):
+            _, a = sorted_others_y[i]
+            _, b = sorted_others_y[i + 1]
+            gap = b.y - (a.y + a.h)
+            if gap > 0:
+                ref_gaps_v.add(round(gap))
 
-        spacing_threshold = 5
-        for i, (e1, g1) in enumerate(h_gaps):
-            for j, (e2, g2) in enumerate(h_gaps):
-                if i < j and abs(g1 - g2) < spacing_threshold:
-                    for name, ow in others:
-                        if name == dragged_name:
-                            continue
-                        if ow.x > dw.x + dw.w and abs(ow.x - candidate_right - g1) < SNAP_THRESHOLD:
-                            snap_x = ow.x - g1 - dw.w - dw.x
-                            candidate_x = dw.x + snap_x
-                            candidate_right = candidate_x + dw.w
-                            guides.append((candidate_right, candidate_y - 3, candidate_right, candidate_bottom + 3))
-                            guides.append((ow.x, candidate_y - 3, ow.x, candidate_bottom + 3))
-                            break
+        if not ref_gaps_h and not ref_gaps_v:
+            return
 
-        for i, (e1, g1) in enumerate(v_gaps):
-            for j, (e2, g2) in enumerate(v_gaps):
-                if i < j and abs(g1 - g2) < spacing_threshold:
-                    for name, ow in others:
-                        if name == dragged_name:
-                            continue
-                        if ow.y > dw.y + dw.h and abs(ow.y - candidate_bottom - g1) < SNAP_THRESHOLD:
-                            snap_y = ow.y - g1 - dw.h - dw.y
-                            candidate_y = dw.y + snap_y
-                            candidate_bottom = candidate_y + dw.h
-                            guides.append((candidate_x - 3, candidate_bottom, candidate_x + dw.w + 3, candidate_bottom))
-                            guides.append((candidate_x - 3, ow.y, candidate_x + dw.w + 3, ow.y))
-                            break
+        for name, ow in others:
+            if ow.x > candidate_right:
+                gap = ow.x - candidate_right
+                rounded = round(gap)
+                if rounded in ref_gaps_h and abs(gap - rounded) < SNAP_THRESHOLD:
+                    exact_gap = rounded
+                    snap_x = ow.x - exact_gap - dw.w - dw.x
+                    candidate_x = dw.x + snap_x
+                    candidate_right = candidate_x + dw.w
+                    guides.append((candidate_right, candidate_y - 3, candidate_right, candidate_bottom + 3))
+                    guides.append((ow.x, candidate_y - 3, ow.x, candidate_bottom + 3))
+                    break
+
+        for name, ow in others:
+            if ow.y > candidate_bottom:
+                gap = ow.y - candidate_bottom
+                rounded = round(gap)
+                if rounded in ref_gaps_v and abs(gap - rounded) < SNAP_THRESHOLD:
+                    exact_gap = rounded
+                    snap_y = ow.y - exact_gap - dw.h - dw.y
+                    candidate_y = dw.y + snap_y
+                    candidate_bottom = candidate_y + dw.h
+                    guides.append((candidate_x - 3, candidate_bottom, candidate_x + dw.w + 3, candidate_bottom))
+                    guides.append((candidate_x - 3, ow.y, candidate_x + dw.w + 3, ow.y))
+                    break
 
     def zoom_in(self):
         self.scale = min(1.5, self.scale + 0.1)
