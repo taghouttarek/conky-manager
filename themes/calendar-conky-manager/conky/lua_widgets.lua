@@ -217,34 +217,43 @@ end
 
 function draw_function(cr)
   local w,h=conky_window.width,conky_window.height	
+
+  local widget_x = 660
+  local widget_y = 50
+  local widget_w = 600
+  local widget_h = 500
+
+  local center_x = widget_x + widget_w / 2
+  local center_y = widget_y + widget_h / 2
+
   cairo_set_line_width(cr, 3)
   cairo_set_font_size(cr,12)
   cairo_select_font_face (cr, "Dejavu Sans Book", CAIRO_FONT_SLANT_NORMAL, CAIRO_FONT_WEIGHT_NORMAL);
   
 -- Number of weeks per year --- 
-  create_circle(cr,w-x_rel_pos,h-y_rel_pos, 52.0, 2, 3.5, 225, 3, CAIRO_OPERATOR_OVER, 4, tonumber(conky_parse('${exec date +%V}')), '')
+  create_circle(cr, 2 * center_x, 2 * center_y, 52.0, 2, 3.5, 225, 3, CAIRO_OPERATOR_OVER, 4, tonumber(conky_parse('${exec date +%V}')), '')
   
 -- Number of days in a month ---
-  create_circle(cr,w-x_rel_pos,h-y_rel_pos, tonumber(conky_parse('${exec cal |egrep -v [a-z] |wc -w}')), 2, 3.5, 200, 13,CAIRO_OPERATOR_CLEAR, -4.5,tonumber(conky_parse('${exec date +%d}')), '')
+  create_circle(cr, 2 * center_x, 2 * center_y, tonumber(conky_parse('${exec cal |egrep -v [a-z] |wc -w}')), 2, 3.5, 200, 13,CAIRO_OPERATOR_CLEAR, -4.5,tonumber(conky_parse('${exec date +%d}')), '')
   
 --- Days ---
 -- function create_circle(cr,w,h, elements, distance_between_blocks, two_number_degree, radius, line_width, operator, radius_shift_for_text, current, days, shift_days_distance)
  
   local days = {"Mon", "Tue", "Wed","Thu", "Fri", "Sat", "Sun"}
-  create_circle(cr,w-x_rel_pos,h-y_rel_pos, 7, 2, 3.5, 150, 13, CAIRO_OPERATOR_CLEAR, -4, tonumber(conky_parse('${exec date +%u}')), days, 8.5)
+  create_circle(cr, 2 * center_x, 2 * center_y, 7, 2, 3.5, 150, 13, CAIRO_OPERATOR_CLEAR, -4, tonumber(conky_parse('${exec date +%u}')), days, 8.5)
   
 --- Month ---
   
   local month = {"Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"}
-  create_circle(cr,w-x_rel_pos,h-y_rel_pos, 12, 2, 3.5, 175, 13, CAIRO_OPERATOR_CLEAR, -4, tonumber(conky_parse('${exec date +%m}')), month, 5.5)
+  create_circle(cr, 2 * center_x, 2 * center_y, 12, 2, 3.5, 175, 13, CAIRO_OPERATOR_CLEAR, -4, tonumber(conky_parse('${exec date +%m}')), month, 5.5)
   
   
 --- Clock ---
   cairo_set_font_size(cr,42)
-  cairo_move_to(cr, (w-x_rel_pos)/2-54,(h-y_rel_pos)/2)
+  cairo_move_to(cr, center_x-54, center_y)
   cairo_show_text(cr,conky_parse('${exec date +%H}') .. ":" .. conky_parse('${exec date +%M}'))
   cairo_set_font_size(cr,12)
-  cairo_move_to(cr, (w-x_rel_pos)/2-24,(h-y_rel_pos)/2+14)
+  cairo_move_to(cr, center_x-24, center_y+14)
   cairo_show_text(cr, "")
   
 
@@ -253,26 +262,26 @@ function draw_function(cr)
   angle1 = 0.0  * (math.pi/180.0);  
   angle2 = 360.0 * (math.pi/180.0);
   
-  create_circle_hdd(cr,(w-x_rel_pos)/2-60,(h-y_rel_pos)/2-80,20,3, 20, 3, 100-tonumber(conky_parse("${fs_free_perc /}")))
-  create_circle_hdd(cr,(w-x_rel_pos)/2+60,(h-y_rel_pos)/2-80,20,3, 20, 3,100-tonumber(conky_parse("${fs_free_perc /home}")))
+  create_circle_hdd(cr, center_x-60, center_y-80,20,3, 20, 3, 100-tonumber(conky_parse("${fs_free_perc /}")))
+  create_circle_hdd(cr, center_x+60, center_y-80,20,3, 20, 3,100-tonumber(conky_parse("${fs_free_perc /home}")))
   
 
-  cairo_arc(cr,(w-x_rel_pos)/2-60,(h-y_rel_pos)/2-80,14,0,2*math.pi)
+  cairo_arc(cr, center_x-60, center_y-80,14,0,2*math.pi)
   cairo_fill(cr)
-  cairo_arc(cr,(w-x_rel_pos)/2+60,(h-y_rel_pos)/2-80,14,0,2*math.pi)
+  cairo_arc(cr, center_x+60, center_y-80,14,0,2*math.pi)
   cairo_fill(cr)
   
   cairo_set_operator(cr, CAIRO_OPERATOR_CLEAR)
-  cairo_move_to(cr, (w-x_rel_pos)/2-64, (h-y_rel_pos)/2-75)
+  cairo_move_to(cr, center_x-64, center_y-75)
   cairo_show_text(cr,"R")
-  cairo_move_to(cr, (w-x_rel_pos)/2+56, (h-y_rel_pos)/2-75)
+  cairo_move_to(cr, center_x+56, center_y-75)
   cairo_show_text(cr,"H")
   cairo_set_operator(cr, CAIRO_OPERATOR_OVER)
   
 --- Music Player ---
 
-  local x = (w-x_rel_pos)/2
-  local music_y = (h-y_rel_pos)/2 + 50
+  local x = center_x
+  local music_y = center_y + 50
 
   -- Get music info
   local artist = conky_parse('${exec playerctl metadata artist 2>/dev/null || echo ""}')

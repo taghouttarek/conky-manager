@@ -396,15 +396,20 @@ function draw_function(cr)
 	local w,h=conky_window.width,conky_window.height	
 	cairo_select_font_face (cr, "Dejavu Sans Book", CAIRO_FONT_SLANT_NORMAL, CAIRO_FONT_WEIGHT_NORMAL);
 
-   	local start_rect_height = 88
+	local widget_x = 0
+	local widget_y = 470
+	local widget_w = 1040
+	local widget_h = 100
+
+   	local start_rect_height = widget_h - 12
     -- Start with 172
     	local start_rect_width = 200
     	local gap_y_text = (start_rect_height/2)-7
     	local gap_x = 10
 	local gap_y = 10
-	local gap_x_fix = 2
-   	local gap_y_fix = 2
-	local start_rect_width_no_battery = 106
+	local gap_x_fix = widget_x + 2
+   	local gap_y_fix = widget_y + 2
+	local start_rect_width_no_battery = widget_x + 106
 	local radius = 10
     
 	if battery then

@@ -85,10 +85,15 @@ end
 function draw_function(cr)
 	local w,h=conky_window.width,conky_window.height
 
+	local widget_x = w - 120
+	local widget_y = 20
+	local widget_w = 120
+	local widget_h = 120
+
   --Draw backgrounds
-	local radius = 60
-	local pos_x = w-70
-	local pos_y = 70
+	local radius = widget_w / 2
+	local pos_x = widget_x + widget_w / 2
+	local pos_y = widget_y + widget_h / 2
 
  	draw_circle(cr, pos_x, pos_y, radius, r_circle, g_circle, b_circle, transparency)
     draw_border(cr, pos_x, pos_y, radius+1, r_border, g_border, b_border, transparency_border)
