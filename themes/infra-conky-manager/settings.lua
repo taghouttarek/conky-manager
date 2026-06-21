@@ -70,6 +70,26 @@ function draw_icon_server(cr, x, y, size)
     end
 end
 
+function is_recent(date_str, max_days)
+    local y, m, d = date_str:match("(%d+)-(%d+)-(%d+)")
+    if not y then return false end
+    local now = os.time()
+    local entry = os.time{year=tonumber(y), month=tonumber(m), day=tonumber(d)}
+    if not entry then return false end
+    local diff = os.difftime(now, entry) / 86400
+    return diff <= max_days
+end
+
+function draw_flashing_dot(cr, x, y, updates)
+    local visible = (updates % 2 == 0)
+    if visible then
+        cairo_set_operator(cr, CAIRO_OPERATOR_OVER)
+        cairo_set_source_rgba(cr, r_crit, g_crit, b_crit, 1.0)
+        cairo_arc(cr, x, y, 3, 0, 2 * math.pi)
+        cairo_fill(cr)
+    end
+end
+
 function draw_infra_widget(cr, x, y)
     local w, h = 250, 250
 
@@ -80,6 +100,7 @@ function draw_infra_widget(cr, x, y)
 
     -- Fetch data
     local raw = conky_parse("${exec python3 ~/.config/conky/infra-conky-manager/fetch_infra_vulns.py --get_list --count 5 2>/dev/null}")
+    local updates = tonumber(conky_parse("${updates}")) or 0
 
     local cy = y + 45
     local count = 0
@@ -88,6 +109,11 @@ function draw_infra_widget(cr, x, y)
         for line in raw:gmatch("[^\n]+") do
             local id, vendor, product, date = line:match("([^|]+)|([^|]+)|([^|]+)|([^|]+)")
             if id and count < 5 then
+                -- Flashing red dot for recent entries (< 1 week)
+                if is_recent(date, 7) then
+                    draw_flashing_dot(cr, x + w - 12, cy - 4, updates)
+                end
+
                 -- CVE ID in orange
                 cairo_set_operator(cr, operator_transpose[mode])
                 cairo_set_source_rgba(cr, r_crit, g_crit, b_crit, transparency_value)
