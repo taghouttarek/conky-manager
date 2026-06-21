@@ -34,6 +34,9 @@ MIN_WIDGET_SIZES = {
 }
 MAX_SCREEN_W = 7680
 MAX_SCREEN_H = 4320
+SNAP_THRESHOLD = 8
+GUIDE_COLOR = "#ff0000"
+GUIDE_DASH = (4, 4)
 
 
 def detect_monitors():
@@ -225,6 +228,7 @@ class LayoutEditor:
         self.selected = set()
         self.mode = "move"
         self.drag_data = {"x": 0, "y": 0}
+        self.guide_lines = []
 
         self.setup_ui()
         self.load_widgets()
@@ -549,12 +553,21 @@ class LayoutEditor:
             if primary in self.widgets:
                 self.widgets[primary].resize(dx, dy)
         else:
-            for name in self.selected:
-                if name in self.widgets:
-                    self.widgets[name].move(dx, dy)
+            primary = next(iter(self.selected))
+            if primary in self.widgets:
+                self.widgets[primary].move(dx, dy)
+                snap_dx, snap_dy, guides = self._compute_snap(primary)
+                if snap_dx != 0 or snap_dy != 0:
+                    for name in self.selected:
+                        if name in self.widgets:
+                            self.widgets[name].move(snap_dx, snap_dy)
+                self._clear_guides()
+                for x1, y1, x2, y2 in guides:
+                    self._draw_guide(x1, y1, x2, y2)
 
     def on_release(self, event):
         self.drag_data = {"x": 0, "y": 0}
+        self._clear_guides()
 
     def _update_selection_highlight(self):
         for name, w in self.widgets.items():
@@ -562,6 +575,160 @@ class LayoutEditor:
                 self.canvas.itemconfig(w.rect, outline="#00ff00", width=2)
             else:
                 self.canvas.itemconfig(w.rect, outline="#888888", width=1)
+
+    def _clear_guides(self):
+        for line_id in self.guide_lines:
+            self.canvas.delete(line_id)
+        self.guide_lines = []
+
+    def _draw_guide(self, x1, y1, x2, y2):
+        s = self.scale
+        line = self.canvas.create_line(
+            x1 * s, y1 * s, x2 * s, y2 * s,
+            fill=GUIDE_COLOR, dash=GUIDE_DASH, width=1,
+            tags="guide"
+        )
+        self.guide_lines.append(line)
+
+    def _compute_snap(self, dragged_name):
+        dw = self.widgets[dragged_name]
+        snap_x, snap_y = 0, 0
+        guides = []
+
+        dx_edges = {
+            "left": dw.x,
+            "right": dw.x + dw.w,
+            "cx": dw.x + dw.w / 2,
+        }
+        dy_edges = {
+            "top": dw.y,
+            "bottom": dw.y + dw.h,
+            "cy": dw.y + dw.h / 2,
+        }
+
+        targets_x = {"left": [0], "right": [self.screen_w - dw.w],
+                      "cx": [(self.screen_w - dw.w) / 2]}
+        targets_y = {"top": [0], "bottom": [self.screen_h - dw.h],
+                      "cy": [(self.screen_h - dw.h) / 2]}
+
+        for name, ow in self.widgets.items():
+            if name == dragged_name or name in self.selected:
+                continue
+            targets_x["left"].extend([ow.x, ow.x + ow.w])
+            targets_x["right"].extend([ow.x, ow.x + ow.w])
+            targets_x["cx"].append(ow.x + ow.w / 2)
+            targets_y["top"].extend([ow.y, ow.y + ow.h])
+            targets_y["bottom"].extend([ow.y, ow.y + ow.h])
+            targets_y["cy"].append(ow.y + ow.h / 2)
+
+        best_dx, best_dist_x = 0, SNAP_THRESHOLD + 1
+        for edge_name, val in dx_edges.items():
+            for target in targets_x.get(edge_name, []):
+                dist = abs(val - target)
+                if dist < best_dist_x:
+                    best_dist_x = dist
+                    best_dx = target - val
+
+        if best_dx != 0:
+            snap_x = best_dx
+            snap_left = dw.x + best_dx
+            snap_right = snap_left + dw.w
+            snap_cx = snap_left + dw.w / 2
+            for t in targets_x.get("left", []):
+                if abs(snap_left - t) < 0.5:
+                    guides.append((t, dw.y - 5, t, dw.y + dw.h + 5))
+            for t in targets_x.get("right", []):
+                if abs(snap_right - t) < 0.5:
+                    guides.append((t, dw.y - 5, t, dw.y + dw.h + 5))
+            for t in targets_x.get("cx", []):
+                if abs(snap_cx - t) < 0.5:
+                    guides.append((t, dw.y - 5, t, dw.y + dw.h + 5))
+
+        best_dy, best_dist_y = 0, SNAP_THRESHOLD + 1
+        for edge_name, val in dy_edges.items():
+            for target in targets_y.get(edge_name, []):
+                dist = abs(val - target)
+                if dist < best_dist_y:
+                    best_dist_y = dist
+                    best_dy = target - val
+
+        if best_dy != 0:
+            snap_y = best_dy
+            snap_top = dw.y + best_dy
+            snap_bottom = snap_top + dw.h
+            snap_cy = snap_top + dw.h / 2
+            for t in targets_y.get("top", []):
+                if abs(snap_top - t) < 0.5:
+                    guides.append((dw.x - 5, t, dw.x + dw.w + 5, t))
+            for t in targets_y.get("bottom", []):
+                if abs(snap_bottom - t) < 0.5:
+                    guides.append((dw.x - 5, t, dw.x + dw.w + 5, t))
+            for t in targets_y.get("cy", []):
+                if abs(snap_cy - t) < 0.5:
+                    guides.append((dw.x - 5, t, dw.x + dw.w + 5, t))
+
+        self._snap_equal_spacing(dragged_name, snap_x, snap_y, guides)
+
+        return snap_x, snap_y, guides
+
+    def _snap_equal_spacing(self, dragged_name, snap_x, snap_y, guides):
+        dw = self.widgets[dragged_name]
+        candidate_x = dw.x + snap_x
+        candidate_y = dw.y + snap_y
+        candidate_right = candidate_x + dw.w
+        candidate_bottom = candidate_y + dw.h
+        candidate_cx = candidate_x + dw.w / 2
+        candidate_cy = candidate_y + dw.h / 2
+
+        others = [(n, w) for n, w in self.widgets.items()
+                  if n != dragged_name and n not in self.selected]
+        h_gaps = []
+        v_gaps = []
+        for n, ow in others:
+            if ow.x >= dw.x + dw.w:
+                h_gaps.append(("right", ow.x - (dw.x + dw.w)))
+            if ow.x + ow.w <= dw.x:
+                h_gaps.append(("left", dw.x - (ow.x + ow.w)))
+            if ow.y >= dw.y + dw.h:
+                v_gaps.append(("bottom", ow.y - (dw.y + dw.h)))
+            if ow.y + ow.h <= dw.y:
+                v_gaps.append(("top", dw.y - (ow.y + ow.h)))
+
+        for i, (_, g1) in enumerate(h_gaps):
+            for j, (_, g2) in enumerate(h_gaps):
+                if i < j and abs(g1 - g2) < 1:
+                    for edge, gap in h_gaps:
+                        if abs(gap - g1) < 1:
+                            pass
+
+        spacing_threshold = 5
+        for i, (e1, g1) in enumerate(h_gaps):
+            for j, (e2, g2) in enumerate(h_gaps):
+                if i < j and abs(g1 - g2) < spacing_threshold:
+                    for name, ow in others:
+                        if name == dragged_name:
+                            continue
+                        if ow.x > dw.x + dw.w and abs(ow.x - candidate_right - g1) < SNAP_THRESHOLD:
+                            snap_x = ow.x - g1 - dw.w - dw.x
+                            candidate_x = dw.x + snap_x
+                            candidate_right = candidate_x + dw.w
+                            guides.append((candidate_right, candidate_y - 3, candidate_right, candidate_bottom + 3))
+                            guides.append((ow.x, candidate_y - 3, ow.x, candidate_bottom + 3))
+                            break
+
+        for i, (e1, g1) in enumerate(v_gaps):
+            for j, (e2, g2) in enumerate(v_gaps):
+                if i < j and abs(g1 - g2) < spacing_threshold:
+                    for name, ow in others:
+                        if name == dragged_name:
+                            continue
+                        if ow.y > dw.y + dw.h and abs(ow.y - candidate_bottom - g1) < SNAP_THRESHOLD:
+                            snap_y = ow.y - g1 - dw.h - dw.y
+                            candidate_y = dw.y + snap_y
+                            candidate_bottom = candidate_y + dw.h
+                            guides.append((candidate_x - 3, candidate_bottom, candidate_x + dw.w + 3, candidate_bottom))
+                            guides.append((candidate_x - 3, ow.y, candidate_x + dw.w + 3, ow.y))
+                            break
 
     def zoom_in(self):
         self.scale = min(1.5, self.scale + 0.1)
@@ -582,6 +749,7 @@ class LayoutEditor:
         self.root.geometry(f"{new_w + 60}x{new_h + 120}")
         self.canvas.delete("all")
         self.selected = set()
+        self.guide_lines = []
         self._draw_grid()
         self.widgets.clear()
         for name, (x, y, w, h, color) in saved.items():
