@@ -45,6 +45,21 @@ themes/<theme-name>/
 └── start_conky          # Actual config file (conky 1.19 syntax)
 ```
 
+### Layout Editor (`layout_editor.py`)
+- Scans running conky processes via `pgrep -a conky`
+- Each theme is a `WidgetRect` with x/y/w/h in screen coordinates
+- Canvas uses `scale` factor (0.5 default) for display
+- Drag converts canvas deltas: `dx = canvas_delta / scale`
+- Position clamped to `[0, screen_w - w]` x `[0, screen_h - h]`
+- Resolution configurable via presets (1920x1080, 2560x1440, 3840x2160, Custom) or manual W/H entry fields
+- Changing resolution proportionally rescales all widget positions
+- `layout.json` stores `"resolution": {"w": N, "h": N}` alongside widget positions
+- `update_conkyrc_position` writes `gap_x`, `gap_y`, `minimum_width`, `minimum_height`
+- `update_lua_position` writes `local widget_x`, `local widget_y`, `local x`, `local y`
+- Symlinks resolved before read/write
+- Files only written when content actually changed
+- Auto-restart themes after applying positions
+
 ## Conky 1.19 Compatibility
 
 ### Config Syntax (Lua format required)
