@@ -96,6 +96,15 @@ ${cpu}%
 - Updated API key, city, country in settings.lua
 - Fixed PNG path from `~/.conky/` to `~/.config/conky/`
 
+### Unified Widget Positioning (v2.0.4)
+- All themes use fullscreen windows (1920x1080) with `gap_x = 0`, `gap_y = 0`
+- Content positioned with absolute screen coordinates in Lua (`local x = N`, `local y = N`)
+- Removed window-relative positioning (`w - N`, `(h - widget_h) / 2`)
+- Layout editor updates both conkyrc (`gap_x`/`gap_y`) and settings.lua (`x`/`y`)
+- Layout editor resolves symlinks before writing
+- Layout editor scans all `.lua` files in theme dir for position variables
+- Auto-restart themes after applying positions
+
 ## Adding New Themes
 
 1. Place theme in `themes/<theme-name>/`
