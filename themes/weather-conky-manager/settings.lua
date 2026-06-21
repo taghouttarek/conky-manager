@@ -59,7 +59,7 @@ function draw_weather_icon(cr, pos_x, pos_y, image_path, trans)
 	local home = assert(io.popen("echo $HOME"))
 	local home = assert(home:read('*a'))
 	local home = home:gsub("[\n\r]", "") 
-	local image_path = home .. "/.config/conky/Conky-Weather/PNG/" .. image_path .. ".png"
+	local image_path = home .. "/.config/conky/weather-conky-manager/PNG/" .. image_path .. ".png"
 	local image = cairo_image_surface_create_from_png(image_path)
 	local w_img = cairo_image_surface_get_width(image)
 	local h_img = cairo_image_surface_get_height(image)
