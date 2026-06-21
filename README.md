@@ -105,6 +105,7 @@ EOF
 ```bash
 # Required
 sudo apt install conky python3-tk lua5.3 git
+pip3 install customtkinter
 
 # Optional (for specific themes)
 pip3 install pyowm  # Weather theme

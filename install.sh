@@ -21,6 +21,10 @@ else
     SUDO="sudo"
 fi
 
+# Install Python dependencies
+echo "Installing Python dependencies..."
+pip3 install customtkinter --break-system-packages 2>/dev/null || pip3 install customtkinter 2>/dev/null || echo "Warning: Could not install customtkinter automatically. Run: pip3 install customtkinter"
+
 # Install to /opt
 echo "Installing to $INSTALL_DIR..."
 $SUDO mkdir -p "$INSTALL_DIR"

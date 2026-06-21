@@ -1,5 +1,6 @@
 #!/usr/bin/env python3
 """Layout Editor - Drag and drop interface for positioning conky widgets"""
+import customtkinter as ctk
 import tkinter as tk
 from tkinter import ttk
 import json
@@ -208,7 +209,12 @@ class WidgetRect:
 class LayoutEditor:
     def __init__(self, parent=None):
         self.standalone = parent is None
-        self.root = tk.Tk() if self.standalone else tk.Toplevel(parent)
+        if self.standalone:
+            ctk.set_appearance_mode("dark")
+            ctk.set_default_color_theme("blue")
+            self.root = ctk.CTk()
+        else:
+            self.root = ctk.CTkToplevel(parent)
 
         self.screen_w = DEFAULT_SCREEN_W
         self.screen_h = DEFAULT_SCREEN_H
@@ -255,70 +261,72 @@ class LayoutEditor:
 
     def setup_ui(self):
         # Toolbar
-        toolbar = ttk.Frame(self.root)
-        toolbar.pack(fill=tk.X, padx=5, pady=5)
+        toolbar = ctk.CTkFrame(self.root, fg_color="transparent")
+        toolbar.pack(fill="x", padx=5, pady=5)
 
-        ttk.Button(toolbar, text="Save", command=self.save).pack(side=tk.LEFT, padx=2)
-        ttk.Button(toolbar, text="Reset", command=self.reset).pack(side=tk.LEFT, padx=2)
-        ttk.Button(toolbar, text="Apply", command=self.apply_positions).pack(side=tk.LEFT, padx=2)
-        ttk.Button(toolbar, text="Center All", command=self.center_all).pack(side=tk.LEFT, padx=2)
+        ctk.CTkButton(toolbar, text="Save", command=self.save, width=60).pack(side="left", padx=2)
+        ctk.CTkButton(toolbar, text="Reset", command=self.reset, width=60).pack(side="left", padx=2)
+        ctk.CTkButton(toolbar, text="Apply", command=self.apply_positions, width=60).pack(side="left", padx=2)
+        ctk.CTkButton(toolbar, text="Center All", command=self.center_all, width=80).pack(side="left", padx=2)
 
-        ttk.Separator(toolbar, orient=tk.VERTICAL).pack(side=tk.LEFT, fill=tk.Y, padx=5)
+        sep1 = ctk.CTkFrame(toolbar, width=2, fg_color="gray40")
+        sep1.pack(side="left", fill="y", padx=5, pady=5)
 
-        ttk.Button(toolbar, text="-", command=self.zoom_out, width=3).pack(side=tk.LEFT, padx=2)
-        self.zoom_label = ttk.Label(toolbar, text=f"{int(self.scale * 100)}%")
-        self.zoom_label.pack(side=tk.LEFT, padx=2)
-        ttk.Button(toolbar, text="+", command=self.zoom_in, width=3).pack(side=tk.LEFT, padx=2)
+        ctk.CTkButton(toolbar, text="-", command=self.zoom_out, width=30).pack(side="left", padx=2)
+        self.zoom_label = ctk.CTkLabel(toolbar, text=f"{int(self.scale * 100)}%")
+        self.zoom_label.pack(side="left", padx=2)
+        ctk.CTkButton(toolbar, text="+", command=self.zoom_in, width=30).pack(side="left", padx=2)
 
         self.mode_var = tk.StringVar(value="move")
-        ttk.Radiobutton(toolbar, text="Move", variable=self.mode_var, value="move").pack(side=tk.LEFT, padx=10)
-        ttk.Radiobutton(toolbar, text="Resize", variable=self.mode_var, value="resize").pack(side=tk.LEFT, padx=2)
+        ctk.CTkRadioButton(toolbar, text="Move", variable=self.mode_var, value="move").pack(side="left", padx=10)
+        ctk.CTkRadioButton(toolbar, text="Resize", variable=self.mode_var, value="resize").pack(side="left", padx=2)
 
-        ttk.Separator(toolbar, orient=tk.VERTICAL).pack(side=tk.LEFT, fill=tk.Y, padx=5)
+        sep2 = ctk.CTkFrame(toolbar, width=2, fg_color="gray40")
+        sep2.pack(side="left", fill="y", padx=5, pady=5)
 
         # Detect button
-        ttk.Button(toolbar, text="Detect", command=self._on_detect).pack(side=tk.LEFT, padx=2)
+        ctk.CTkButton(toolbar, text="Detect", command=self._on_detect, width=60).pack(side="left", padx=2)
 
         # Monitor dropdown
         self.monitor_var = tk.StringVar()
         self.monitor_labels = [self._monitor_label(m) for m in self.monitors]
-        self.monitor_combo = ttk.Combobox(
-            toolbar, textvariable=self.monitor_var,
-            values=self.monitor_labels, width=25, state="readonly"
+        self.monitor_combo = ctk.CTkComboBox(
+            toolbar, variable=self.monitor_var,
+            values=self.monitor_labels, width=250, state="readonly",
+            command=self._on_monitor_change
         )
-        self.monitor_combo.pack(side=tk.LEFT, padx=2)
-        self.monitor_combo.bind("<<ComboboxSelected>>", self._on_monitor_change)
+        self.monitor_combo.pack(side="left", padx=2)
         # Set initial selection
         if self.monitor_labels:
-            self.monitor_combo.current(0)
+            self.monitor_combo.set(self.monitor_labels[0])
 
         # Resolution preset dropdown
         self.resolution_var = tk.StringVar(value=self._current_preset())
-        self.resolution_combo = ttk.Combobox(
-            toolbar, textvariable=self.resolution_var,
-            values=RESOLUTION_PRESETS, width=12, state="readonly"
+        self.resolution_combo = ctk.CTkComboBox(
+            toolbar, variable=self.resolution_var,
+            values=RESOLUTION_PRESETS, width=140, state="readonly",
+            command=self._on_preset_change
         )
-        self.resolution_combo.pack(side=tk.LEFT, padx=2)
-        self.resolution_combo.bind("<<ComboboxSelected>>", self._on_preset_change)
+        self.resolution_combo.pack(side="left", padx=2)
 
         # Width/Height entry fields
-        ttk.Label(toolbar, text="W:").pack(side=tk.LEFT, padx=(8, 2))
+        ctk.CTkLabel(toolbar, text="W:").pack(side="left", padx=(8, 2))
         self.width_var = tk.StringVar(value=str(self.screen_w))
-        self.width_entry = ttk.Entry(toolbar, textvariable=self.width_var, width=6)
-        self.width_entry.pack(side=tk.LEFT, padx=2)
+        self.width_entry = ctk.CTkEntry(toolbar, textvariable=self.width_var, width=60)
+        self.width_entry.pack(side="left", padx=2)
         self.width_entry.bind("<Return>", self._on_resolution_entry)
         self.width_entry.bind("<FocusOut>", self._on_resolution_entry)
 
-        ttk.Label(toolbar, text="H:").pack(side=tk.LEFT, padx=(4, 2))
+        ctk.CTkLabel(toolbar, text="H:").pack(side="left", padx=(4, 2))
         self.height_var = tk.StringVar(value=str(self.screen_h))
-        self.height_entry = ttk.Entry(toolbar, textvariable=self.height_var, width=6)
-        self.height_entry.pack(side=tk.LEFT, padx=2)
+        self.height_entry = ctk.CTkEntry(toolbar, textvariable=self.height_var, width=60)
+        self.height_entry.pack(side="left", padx=2)
         self.height_entry.bind("<Return>", self._on_resolution_entry)
         self.height_entry.bind("<FocusOut>", self._on_resolution_entry)
 
         # Canvas
-        canvas_frame = ttk.Frame(self.root)
-        canvas_frame.pack(fill=tk.BOTH, expand=True, padx=5, pady=5)
+        canvas_frame = ctk.CTkFrame(self.root)
+        canvas_frame.pack(fill="both", expand=True, padx=5, pady=5)
 
         self.canvas = tk.Canvas(
             canvas_frame,
@@ -326,7 +334,7 @@ class LayoutEditor:
             height=int(self.screen_h * self.scale),
             bg="#1a1a2e", highlightthickness=1, highlightbackground="#444444"
         )
-        self.canvas.pack(fill=tk.BOTH, expand=True)
+        self.canvas.pack(fill="both", expand=True)
 
         # Grid lines
         self._draw_grid()
@@ -363,10 +371,12 @@ class LayoutEditor:
             self.monitor_combo.current(0)
             self._apply_monitor(0)
 
-    def _on_monitor_change(self, event=None):
-        idx = self.monitor_combo.current()
-        if 0 <= idx < len(self.monitors):
-            self._apply_monitor(idx)
+    def _on_monitor_change(self, value=None):
+        selected = self.monitor_var.get()
+        for i, label in enumerate(self.monitor_labels):
+            if label == selected:
+                self._apply_monitor(i)
+                break
 
     def _apply_monitor(self, idx):
         m = self.monitors[idx]
@@ -379,7 +389,7 @@ class LayoutEditor:
         self.resolution_var.set(preset if preset in RESOLUTION_PRESETS else "Custom")
         self.redraw_canvas()
 
-    def _on_preset_change(self, event=None):
+    def _on_preset_change(self, value=None):
         preset = self.resolution_var.get()
         if preset == "Custom":
             return
@@ -461,7 +471,7 @@ class LayoutEditor:
         # Update monitor dropdown to match stored monitor
         for i, m in enumerate(self.monitors):
             if m["index"] == self.monitor:
-                self.monitor_combo.current(i)
+                self.monitor_combo.set(self.monitor_labels[i])
                 break
 
         self._update_geometry()
