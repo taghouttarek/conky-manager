@@ -22,7 +22,7 @@ rm -rf "$INSTALL_DIR"
 mkdir -p "$INSTALL_DIR"
 cp -r "$CLONE_DIR"/* "$INSTALL_DIR/" 2>/dev/null
 cp -r "$CLONE_DIR"/.git "$INSTALL_DIR/.git" 2>/dev/null || true
-chmod -R a+rX "$INSTALL_DIR/.git" 2>/dev/null || true
+chmod -R a+rwX "$INSTALL_DIR/.git" 2>/dev/null || true
 chmod +x "$INSTALL_DIR/install.sh" 2>/dev/null || true
 chmod +x "$INSTALL_DIR/conky_manager.py" 2>/dev/null || true
 

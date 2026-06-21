@@ -37,8 +37,8 @@ $SUDO rsync -a --exclude='.git' "$REPO_DIR/" "$INSTALL_DIR/"
 if [ -d "$REPO_DIR/.git" ]; then
     $SUDO cp -r "$REPO_DIR/.git" "$INSTALL_DIR/.git"
 fi
-# Make .git readable by the user running the manager
-$SUDO chmod -R a+rX "$INSTALL_DIR/.git" 2>/dev/null || true
+# Make .git readable/writable by the user running the manager (needed for fetch)
+$SUDO chmod -R a+rwX "$INSTALL_DIR/.git" 2>/dev/null || true
 $SUDO chmod +x "$INSTALL_DIR/install.sh"
 $SUDO chmod +x "$INSTALL_DIR/uninstall.sh"
 if [ -f "$INSTALL_DIR/conky_manager.py" ]; then
