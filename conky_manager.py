@@ -41,7 +41,7 @@ AUTOSTART_DIR = HOME / ".config" / "autostart"
 DATA_DIR = HOME / ".local" / "share" / "conky-manager"
 SETTINGS_FILE = DATA_DIR / "settings.json"
 LOG_FILE = DATA_DIR / "manager.log"
-VERSION = "2.1.2"
+VERSION = "2.1.1"
 REPO_URL = "https://github.com/taghouti-org/conky-manager.git"
 
 # Supported archive extensions
@@ -941,12 +941,16 @@ class ConkyManagerGUI:
                 if not version_file.exists():
                     return
 
-                result = self._git(repo_path, ['fetch', 'origin'], timeout=15)
+                result = subprocess.run(['git', '-C', str(repo_path), 'fetch', 'origin'],
+                                        capture_output=True, timeout=15)
                 if result.returncode != 0:
                     return
 
                 # Get remote VERSION
-                result = self._git(repo_path, ['show', 'origin/master:VERSION'])
+                result = subprocess.run(
+                    ['git', '-C', str(repo_path), 'show', f'origin/master:VERSION'],
+                    capture_output=True, text=True, timeout=10
+                )
                 remote_version = result.stdout.strip() if result.returncode == 0 else ""
 
                 if remote_version and remote_version != VERSION:
@@ -984,29 +988,16 @@ class ConkyManagerGUI:
                                         capture_output=True, timeout=5)
                 if result.returncode == 0:
                     return p
-            except (subprocess.TimeoutExpired, PermissionError, OSError):
-                continue
-            # Try with sudo for /opt paths
-            if str(p).startswith("/opt"):
-                try:
-                    result = subprocess.run(['sudo', 'git', '-C', str(p), 'rev-parse', '--git-dir'],
+                if result.returncode != 0 and b"dubious ownership" in result.stderr:
+                    subprocess.run(['git', 'config', '--global', '--add', 'safe.directory', str(p)],
+                                   capture_output=True, timeout=5)
+                    result = subprocess.run(['git', '-C', str(p), 'rev-parse', '--git-dir'],
                                             capture_output=True, timeout=5)
                     if result.returncode == 0:
                         return p
-                except (subprocess.TimeoutExpired, PermissionError, OSError):
-                    continue
+            except (subprocess.TimeoutExpired, PermissionError, OSError):
+                continue
         return None
-
-    def _git(self, repo_path, args, **kwargs):
-        """Run git command, using sudo if needed for /opt paths"""
-        cmd = ['git', '-C', str(repo_path)] + args
-        result = subprocess.run(cmd, capture_output=True, text=True,
-                                timeout=kwargs.get('timeout', 10))
-        if result.returncode != 0 and str(repo_path).startswith("/opt"):
-            cmd = ['sudo', 'git', '-C', str(repo_path)] + args
-            result = subprocess.run(cmd, capture_output=True, text=True,
-                                    timeout=kwargs.get('timeout', 10))
-        return result
 
     def update_from_repo(self):
         """Pull latest changes from git repo (does NOT apply to system)"""
@@ -1015,10 +1006,14 @@ class ConkyManagerGUI:
             messagebox.showerror("Update Error", "Git repo not found")
             return
         try:
-            self._git(repo_path, ['fetch', 'origin'], timeout=30)
+            subprocess.run(['git', '-C', str(repo_path), 'fetch', 'origin'],
+                           capture_output=True, timeout=30)
 
             # Compare VERSION file
-            result = self._git(repo_path, ['show', 'origin/master:VERSION'])
+            result = subprocess.run(
+                ['git', '-C', str(repo_path), 'show', f'origin/master:VERSION'],
+                capture_output=True, text=True, timeout=10
+            )
             remote_version = result.stdout.strip() if result.returncode == 0 else ""
 
             if not remote_version or remote_version == VERSION:
@@ -1026,15 +1021,24 @@ class ConkyManagerGUI:
                 return
 
             # Get new commits between versions
-            result = self._git(repo_path, ['log', '--oneline', f'HEAD..origin/master'])
+            result = subprocess.run(
+                ['git', '-C', str(repo_path), 'log', '--oneline', f'HEAD..origin/master'],
+                capture_output=True, text=True, timeout=10
+            )
             commits = result.stdout.strip()
 
             # Get file changes
-            result = self._git(repo_path, ['diff', '--stat', 'HEAD', 'origin/master'])
+            result = subprocess.run(
+                ['git', '-C', str(repo_path), 'diff', '--stat', 'HEAD', 'origin/master'],
+                capture_output=True, text=True, timeout=10
+            )
             changes = result.stdout.strip()
 
             # Get commit messages
-            result = self._git(repo_path, ['log', '--format=%h %s', f'HEAD..origin/master'])
+            result = subprocess.run(
+                ['git', '-C', str(repo_path), 'log', '--format=%h %s', f'HEAD..origin/master'],
+                capture_output=True, text=True, timeout=10
+            )
             details = result.stdout.strip()
 
             msg = f"Update: {VERSION} -> {remote_version}\n\n"
@@ -1050,7 +1054,8 @@ class ConkyManagerGUI:
                 if result.returncode != 0:
                     messagebox.showerror("Update Error", f"Fetch failed:\n{result.stderr}")
                     return
-                result = self._git(repo_path, ['reset', '--hard', 'origin/master'], timeout=30)
+                result = subprocess.run(['git', '-C', str(repo_path), 'reset', '--hard', 'origin/master'],
+                                        capture_output=True, text=True, timeout=30)
                 if result.returncode == 0:
                     import shutil
                     installed_dir = Path.home() / ".local" / "share" / "conky-manager"
