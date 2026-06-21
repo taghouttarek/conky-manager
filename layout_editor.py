@@ -344,16 +344,6 @@ class LayoutEditor:
             f'\\g<1>{int(widget.y)}',
             content
         )
-        content = re.sub(
-            r'(minimum_width\s*=\s*)\d+',
-            f'\\g<1>{int(widget.w)}',
-            content
-        )
-        content = re.sub(
-            r'(minimum_height\s*=\s*)\d+',
-            f'\\g<1>{int(widget.h)}',
-            content
-        )
 
         with open(conkyrc, "w") as f:
             f.write(content)
