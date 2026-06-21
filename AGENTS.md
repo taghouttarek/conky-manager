@@ -142,3 +142,23 @@ ps aux | grep conky | grep -v grep
 - lm-sensors (for Calendar theme)
 - pyowm (for Weather theme): `pip3 install pyowm`
 - OpenWeatherMap API key (for Weather theme)
+- pytest (for tests): `pip3 install pytest pytest-cov`
+
+## Running Tests
+
+```bash
+# Run all tests (70 tests)
+pytest tests/ -v
+
+# Run with coverage
+pytest tests/ -v --cov=. --cov-report=term-missing
+
+# Run specific test file
+pytest tests/test_theme_structure.py -v
+
+# Run only Lua validation
+pytest tests/test_lua_syntax.py -v
+
+# Run only layout editor tests
+pytest tests/test_layout_editor.py -v
+```
