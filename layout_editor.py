@@ -442,25 +442,32 @@ class LayoutEditor:
         print(f"Updated {lua_file}")
 
     def restart_themes(self, theme_names):
+        import time
+        conky_config = Path.home() / ".config" / "conky"
         for name in theme_names:
-            conky_config = Path.home() / ".config" / "conky"
             conkyrc = conky_config / name / "conkyrc"
             if not conkyrc.exists():
                 continue
-            # Kill existing conky process for this theme
+            config_path = str(conkyrc)
             try:
-                subprocess.run(
-                    ['pkill', '-f', f'conky.*-c.*{name}'],
-                    timeout=5
+                result = subprocess.run(
+                    ['pgrep', '-a', 'conky'], capture_output=True, text=True, timeout=5
                 )
+                for line in result.stdout.splitlines():
+                    if config_path in line:
+                        pid = line.split()[0]
+                        subprocess.run(['kill', pid], timeout=5)
             except Exception:
                 pass
-            # Restart conky
+        time.sleep(0.5)
+        for name in theme_names:
+            conkyrc = conky_config / name / "conkyrc"
+            if not conkyrc.exists():
+                continue
             try:
                 subprocess.Popen(
                     ['conky', '-c', str(conkyrc), '-d', '-m', '0'],
-                    stdout=subprocess.DEVNULL,
-                    stderr=subprocess.DEVNULL
+                    stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL
                 )
                 print(f"Restarted {name}")
             except Exception as e:
