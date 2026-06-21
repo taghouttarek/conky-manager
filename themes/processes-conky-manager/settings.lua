@@ -101,8 +101,8 @@ function draw_function(cr)
     cairo_select_font_face(cr, "Dejavu Sans Book", CAIRO_FONT_SLANT_NORMAL, CAIRO_FONT_WEIGHT_NORMAL)
 
     local widget_h = 220
-    local x = 1640
-    local y = 306
+    local x = positions["processes-conky-manager"].x
+    local y = positions["processes-conky-manager"].y
 
     draw_top_processes(cr, x, y)
 end

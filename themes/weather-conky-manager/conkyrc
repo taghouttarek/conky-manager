@@ -20,7 +20,7 @@ conky.config = {
 	border_inner_margin = 0,
 	border_outer_margin = 0,
 
-	minimum_width = 1920, minimum_height = 1080,
+	minimum_width = 1920, minimum_height = 1200,
 
 
 	alignment = 'top_left',
@@ -37,7 +37,7 @@ conky.config = {
 
 	uppercase = false,
 
-	lua_load = '~/.config/conky/weather-conky-manager/settings.lua',
+	lua_load = '~/.config/conky/positions.lua ~/.config/conky/weather-conky-manager/settings.lua',
 	lua_draw_hook_pre = 'start_widgets',
 };
 

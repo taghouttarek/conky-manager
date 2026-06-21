@@ -90,8 +90,8 @@ function draw_function(cr)
     cairo_select_font_face(cr, "Dejavu Sans Book", CAIRO_FONT_SLANT_NORMAL, CAIRO_FONT_WEIGHT_NORMAL)
 
     local widget_h = 140
-    local x = 1640
-    local y = 718
+    local x = positions["k8s-conky-manager"].x
+    local y = positions["k8s-conky-manager"].y
 
     draw_k8s_context(cr, x, y)
 end

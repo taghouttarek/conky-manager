@@ -218,8 +218,8 @@ end
 function draw_function(cr)
   local w,h=conky_window.width,conky_window.height	
 
-  local widget_x = 660
-  local widget_y = 50
+  local widget_x = positions["calendar-conky-manager"].x
+  local widget_y = positions["calendar-conky-manager"].y
   local widget_w = 600
   local widget_h = 500
 

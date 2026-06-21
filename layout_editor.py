@@ -11,6 +11,7 @@ import time
 from pathlib import Path
 
 LAYOUT_FILE = Path.home() / ".config" / "conky" / "layout.json"
+POSITIONS_FILE = Path.home() / ".config" / "conky" / "positions.lua"
 DEFAULT_SCREEN_W = 1920
 DEFAULT_SCREEN_H = 1080
 DEFAULT_SCALE = 0.5
@@ -37,6 +38,26 @@ def save_layout(data):
     with os.fdopen(fd, 'w', encoding='utf-8') as f:
         json.dump(data, f, indent=2)
     os.replace(tmp, LAYOUT_FILE)
+
+
+def save_positions(screen_w, screen_h, widgets):
+    """Write shared positions.lua for all themes."""
+    POSITIONS_FILE.parent.mkdir(parents=True, exist_ok=True)
+    lines = [
+        "-- Shared widget positions and screen config",
+        "-- Managed by Conky Layout Editor - do not edit manually",
+        f"screen = {{w = {int(screen_w)}, h = {int(screen_h)}}}",
+        "positions = {",
+    ]
+    for name, widget in sorted(widgets.items()):
+        lines.append(f'    ["{name}"] = {{x = {int(widget.x)}, y = {int(widget.y)}}},')
+    lines.append("}")
+    lines.append("")
+
+    fd, tmp = tempfile.mkstemp(dir=POSITIONS_FILE.parent, suffix='.tmp')
+    with os.fdopen(fd, 'w', encoding='utf-8') as f:
+        f.write("\n".join(lines))
+    os.replace(tmp, POSITIONS_FILE)
 
 
 class WidgetRect:
@@ -415,6 +436,7 @@ class LayoutEditor:
         for name, widget in self.widgets.items():
             layout[name] = widget.to_dict()
         save_layout(layout)
+        save_positions(self.screen_w, self.screen_h, self.widgets)
         print(f"Layout saved to {LAYOUT_FILE}")
 
     def reset(self):
@@ -434,11 +456,7 @@ class LayoutEditor:
             try:
                 theme_dir = conky_config / name
 
-                # Find and update any Lua file with position variables
-                for lua_file in theme_dir.rglob("*.lua"):
-                    self.update_lua_position(lua_file, widget)
-
-                # Update conkyrc (gap_x/gap_y, minimum_width/minimum_height)
+                # Update conkyrc (minimum_width/minimum_height)
                 conkyrc = theme_dir / "conkyrc"
                 if conkyrc.exists():
                     self.update_conkyrc_position(conkyrc, widget)

@@ -123,8 +123,8 @@ function draw_function(cr)
     cairo_select_font_face(cr, "Dejavu Sans", CAIRO_FONT_SLANT_NORMAL, CAIRO_FONT_WEIGHT_NORMAL)
 
     -- Left side, below crypto widget
-    local widget_x = 30
-    local widget_y = 980
+    local widget_x = positions["infra-conky-manager"].x
+    local widget_y = positions["infra-conky-manager"].y
     draw_infra_widget(cr, widget_x, widget_y)
 end
 

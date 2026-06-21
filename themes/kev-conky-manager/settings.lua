@@ -129,8 +129,8 @@ function draw_function(cr)
     cairo_select_font_face(cr, "Dejavu Sans", CAIRO_FONT_SLANT_NORMAL, CAIRO_FONT_WEIGHT_NORMAL)
 
     -- Right side, below system widgets
-    local widget_x = 926
-    local widget_y = 864
+    local widget_x = positions["kev-conky-manager"].x
+    local widget_y = positions["kev-conky-manager"].y
     draw_vuln_widget(cr, widget_x, widget_y)
 end
 

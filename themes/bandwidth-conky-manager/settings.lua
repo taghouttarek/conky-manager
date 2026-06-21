@@ -90,8 +90,8 @@ function draw_function(cr)
     cairo_select_font_face(cr, "Dejavu Sans Book", CAIRO_FONT_SLANT_NORMAL, CAIRO_FONT_WEIGHT_NORMAL)
 
     local widget_h = 120
-    local x = 30
-    local y = 420
+    local x = positions["bandwidth-conky-manager"].x
+    local y = positions["bandwidth-conky-manager"].y
 
     draw_network_bandwidth(cr, x, y)
 end
