@@ -23,7 +23,10 @@ fi
 
 # Install Python dependencies
 echo "Installing Python dependencies..."
-pip3 install customtkinter --break-system-packages 2>/dev/null || pip3 install customtkinter 2>/dev/null || echo "Warning: Could not install customtkinter automatically. Run: pip3 install customtkinter"
+pip3 install customtkinter --break-system-packages 2>/dev/null || \
+pip3 install customtkinter --root-user-action=ignore 2>/dev/null || \
+pip3 install --user customtkinter 2>/dev/null || \
+echo "WARNING: Could not install customtkinter. Run: pip3 install customtkinter"
 
 # Install to /opt (as git repo so update feature works)
 echo "Installing to $INSTALL_DIR..."
