@@ -548,7 +548,7 @@ class ConkyManagerGUI:
         self.monitor_combo = ctk.CTkComboBox(
             toolbar_frame, variable=self.monitor_var,
             values=[], width=200, height=24, state="readonly",
-            command=self._on_monitor_change, border_spacing=0, corner_radius=3
+            command=self._on_monitor_change, corner_radius=3
         )
         self.monitor_combo.pack(side="left", padx=2)
         self._populate_monitors()
