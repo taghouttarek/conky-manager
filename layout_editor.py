@@ -270,8 +270,8 @@ class LayoutEditor:
         ctk.CTkButton(toolbar, text="Apply", command=self.apply_positions, width=60, height=20, border_spacing=0, corner_radius=0, font=btn_font).pack(side="left", padx=2)
         ctk.CTkButton(toolbar, text="Center All", command=self.center_all, width=80, height=20, border_spacing=0, corner_radius=0, font=btn_font).pack(side="left", padx=2)
 
-        sep1 = ctk.CTkFrame(toolbar, width=2, fg_color="gray40")
-        sep1.pack(side="left", fill="y", padx=5, pady=5)
+        sep1 = ctk.CTkFrame(toolbar, width=2, height=20, fg_color="gray40")
+        sep1.pack(side="left", fill="y", padx=5)
 
         ctk.CTkButton(toolbar, text="-", command=self.zoom_out, width=30, height=20, border_spacing=0, corner_radius=0, font=btn_font).pack(side="left", padx=2)
         self.zoom_label = ctk.CTkLabel(toolbar, text=f"{int(self.scale * 100)}%")
@@ -282,8 +282,8 @@ class LayoutEditor:
         ctk.CTkRadioButton(toolbar, text="Move", variable=self.mode_var, value="move").pack(side="left", padx=10)
         ctk.CTkRadioButton(toolbar, text="Resize", variable=self.mode_var, value="resize").pack(side="left", padx=2)
 
-        sep2 = ctk.CTkFrame(toolbar, width=2, fg_color="gray40")
-        sep2.pack(side="left", fill="y", padx=5, pady=5)
+        sep2 = ctk.CTkFrame(toolbar, width=2, height=20, fg_color="gray40")
+        sep2.pack(side="left", fill="y", padx=5)
 
         # Detect button
         ctk.CTkButton(toolbar, text="Detect", command=self._on_detect, width=60, height=20, border_spacing=0, corner_radius=0, font=btn_font).pack(side="left", padx=2)

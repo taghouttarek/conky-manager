@@ -539,8 +539,8 @@ class ConkyManagerGUI:
         ctk.CTkButton(toolbar_frame, text="Layout", command=self.open_layout_editor, width=70, height=20, border_spacing=0, corner_radius=0, font=('Helvetica', 10)).pack(side="left", padx=2)
         ctk.CTkButton(toolbar_frame, text="Open ~/.conky", command=self.open_conky_dir, width=110, height=20, border_spacing=0, corner_radius=0, font=('Helvetica', 10)).pack(side="left", padx=2)
 
-        sep1 = ctk.CTkFrame(toolbar_frame, width=2, fg_color="gray40")
-        sep1.pack(side="left", fill="y", padx=5, pady=5)
+        sep1 = ctk.CTkFrame(toolbar_frame, width=2, height=20, fg_color="gray40")
+        sep1.pack(side="left", fill="y", padx=5)
 
         # Monitor selector
         ctk.CTkLabel(toolbar_frame, text="Monitor:").pack(side="left", padx=(5, 2))
@@ -610,8 +610,8 @@ class ConkyManagerGUI:
         self.restart_btn = ctk.CTkButton(button_frame, text="Restart", command=self.restart_all, width=80, height=20, border_spacing=0, corner_radius=0, font=('Helvetica', 10))
         self.restart_btn.pack(side="left", padx=2)
 
-        sep2 = ctk.CTkFrame(button_frame, width=2, fg_color="gray40")
-        sep2.pack(side="left", fill="y", padx=5, pady=5)
+        sep2 = ctk.CTkFrame(button_frame, width=2, height=20, fg_color="gray40")
+        sep2.pack(side="left", fill="y", padx=5)
 
         self.edit_btn = ctk.CTkButton(button_frame, text="Edit", command=self.edit_theme, state="disabled", width=60, height=20, border_spacing=0, corner_radius=0, font=('Helvetica', 10))
         self.edit_btn.pack(side="left", padx=2)
@@ -622,8 +622,8 @@ class ConkyManagerGUI:
         self.delete_btn = ctk.CTkButton(button_frame, text="Delete", command=self.delete_theme, state="disabled", width=70, height=20, border_spacing=0, corner_radius=0, font=('Helvetica', 10))
         self.delete_btn.pack(side="left", padx=2)
 
-        sep3 = ctk.CTkFrame(button_frame, width=2, fg_color="gray40")
-        sep3.pack(side="left", fill="y", padx=5, pady=5)
+        sep3 = ctk.CTkFrame(button_frame, width=2, height=20, fg_color="gray40")
+        sep3.pack(side="left", fill="y", padx=5)
 
         self.autostart_var = tk.BooleanVar(value=False)
         self.autostart_check = ctk.CTkCheckBox(button_frame, text="Autostart", variable=self.autostart_var,
