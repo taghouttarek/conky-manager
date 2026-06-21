@@ -165,20 +165,20 @@ class TestWidgetRect:
 class TestUpdateConkyrcPosition:
     """Test conkyrc position updates."""
 
-    def test_update_gap_x(self, tmp_path):
-        """gap_x replaced correctly."""
+    def test_update_gap_always_zero(self, tmp_path):
+        """gap_x and gap_y always set to 0 (fullscreen window)."""
         conkyrc = tmp_path / "conkyrc"
-        conkyrc.write_text("gap_x = 0,\n    gap_y = 0,")
+        conkyrc.write_text("gap_x = 500,\n    gap_y = 300,")
         editor = LayoutEditor.__new__(LayoutEditor)
-        editor.screen_w = 1920
-        editor.screen_h = 1080
+        editor.screen_w = 2560
+        editor.screen_h = 1440
         widget = MagicMock()
-        widget.x = 500
-        widget.y = 300
+        widget.x = 100
+        widget.y = 200
         editor.update_conkyrc_position(conkyrc, widget)
         content = conkyrc.read_text()
-        assert "gap_x = 500" in content
-        assert "gap_y = 300" in content
+        assert "gap_x = 0" in content
+        assert "gap_y = 0" in content
 
     def test_update_minimum_width_height(self, tmp_path):
         """minimum_width and minimum_height updated with screen resolution."""
@@ -194,11 +194,11 @@ class TestUpdateConkyrcPosition:
         content = conkyrc.read_text()
         assert "minimum_width = 2560" in content
         assert "minimum_height = 1440" in content
-        assert "gap_x = 100" in content
-        assert "gap_y = 200" in content
+        assert "gap_x = 0" in content
+        assert "gap_y = 0" in content
 
     def test_update_gap_negative(self, tmp_path):
-        """Negative gap values handled."""
+        """Negative gap values reset to 0."""
         conkyrc = tmp_path / "conkyrc"
         conkyrc.write_text("gap_x = -10,\n    gap_y = 0,")
         editor = LayoutEditor.__new__(LayoutEditor)
@@ -209,12 +209,12 @@ class TestUpdateConkyrcPosition:
         widget.y = 200
         editor.update_conkyrc_position(conkyrc, widget)
         content = conkyrc.read_text()
-        assert "gap_x = 100" in content
+        assert "gap_x = 0" in content
 
     def test_no_change_no_write(self, tmp_path):
         """File not rewritten when values already correct."""
         conkyrc = tmp_path / "conkyrc"
-        conkyrc.write_text("minimum_width = 2560, minimum_height = 1440,\ngap_x = 100,\n    gap_y = 200,")
+        conkyrc.write_text("minimum_width = 2560, minimum_height = 1440,\ngap_x = 0,\n    gap_y = 0,")
         original_mtime = conkyrc.stat().st_mtime_ns
         editor = LayoutEditor.__new__(LayoutEditor)
         editor.screen_w = 2560
@@ -228,7 +228,7 @@ class TestUpdateConkyrcPosition:
     def test_symlink_resolved(self, tmp_path):
         """Symlinks resolved before read/write."""
         real_file = tmp_path / "real_conkyrc"
-        real_file.write_text("gap_x = 0,\n    gap_y = 0,")
+        real_file.write_text("gap_x = 50,\n    gap_y = 60,")
         symlink = tmp_path / "conkyrc"
         symlink.symlink_to(real_file)
 
@@ -241,7 +241,8 @@ class TestUpdateConkyrcPosition:
         editor.update_conkyrc_position(symlink, widget)
 
         content = real_file.read_text()
-        assert "gap_x = 999" in content
+        assert "gap_x = 0" in content
+        assert "gap_y = 0" in content
 
 
 class TestUpdateLuaPosition:
@@ -386,11 +387,11 @@ class TestResolutionFeature:
         assert editor._current_preset() == "Custom"
 
     def test_conkyrc_gets_resolution_on_apply(self, tmp_path):
-        """Apply writes minimum_width/minimum_height to conkyrc."""
+        """Apply writes minimum_width/minimum_height and gap=0 to conkyrc."""
         conkyrc = tmp_path / "conkyrc"
         conkyrc.write_text(
             "minimum_width = 1920, minimum_height = 1080,\n"
-            "gap_x = 0,\n    gap_y = 0,"
+            "gap_x = 50,\n    gap_y = 60,"
         )
         editor = LayoutEditor.__new__(LayoutEditor)
         editor.screen_w = 3840
@@ -402,8 +403,8 @@ class TestResolutionFeature:
         content = conkyrc.read_text()
         assert "minimum_width = 3840" in content
         assert "minimum_height = 2160" in content
-        assert "gap_x = 100" in content
-        assert "gap_y = 200" in content
+        assert "gap_x = 0" in content
+        assert "gap_y = 0" in content
 
 
 class TestApplyPositions:
@@ -436,8 +437,8 @@ class TestApplyPositions:
                     editor.apply_positions()
 
         content = conkyrc.read_text()
-        assert "gap_x = 100" in content
-        assert "gap_y = 200" in content
+        assert "gap_x = 0" in content
+        assert "gap_y = 0" in content
         assert "minimum_width = 2560" in content
         assert "minimum_height = 1440" in content
         assert "local widget_x = 100" in lua_file.read_text()

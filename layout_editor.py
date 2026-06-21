@@ -455,14 +455,15 @@ class LayoutEditor:
         with open(target, encoding='utf-8') as f:
             content = f.read()
 
+        # gap_x/gap_y always 0 for fullscreen windows (positioning done in Lua)
         new_content = re.sub(
             r'(gap_x\s*=\s*)-?\d+',
-            f'\\g<1>{int(widget.x)}',
+            f'\\g<1>0',
             content
         )
         new_content = re.sub(
             r'(gap_y\s*=\s*)-?\d+',
-            f'\\g<1>{int(widget.y)}',
+            f'\\g<1>0',
             new_content
         )
         new_content = re.sub(
