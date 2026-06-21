@@ -23,6 +23,11 @@ mkdir -p "$INSTALL_DIR"
 cp -r "$CLONE_DIR"/* "$INSTALL_DIR/" 2>/dev/null
 cp -r "$CLONE_DIR"/.git "$INSTALL_DIR/.git" 2>/dev/null || true
 chmod -R a+rwX "$INSTALL_DIR/.git" 2>/dev/null || true
+# Change ownership to the first non-root user so they can run git operations
+REAL_USER=$(ls /home | head -1)
+if [ -n "$REAL_USER" ]; then
+    chown -R "$REAL_USER:$REAL_USER" "$INSTALL_DIR" 2>/dev/null || true
+fi
 chmod +x "$INSTALL_DIR/install.sh" 2>/dev/null || true
 chmod +x "$INSTALL_DIR/conky_manager.py" 2>/dev/null || true
 

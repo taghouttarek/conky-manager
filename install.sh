@@ -39,6 +39,8 @@ if [ -d "$REPO_DIR/.git" ]; then
 fi
 # Make .git readable/writable by the user running the manager (needed for fetch)
 $SUDO chmod -R a+rwX "$INSTALL_DIR/.git" 2>/dev/null || true
+# Change ownership so user can run git operations (fetch, reset, clean)
+$SUDO chown -R $(whoami):$(whoami) "$INSTALL_DIR" 2>/dev/null || true
 $SUDO chmod +x "$INSTALL_DIR/install.sh"
 $SUDO chmod +x "$INSTALL_DIR/uninstall.sh"
 if [ -f "$INSTALL_DIR/conky_manager.py" ]; then
