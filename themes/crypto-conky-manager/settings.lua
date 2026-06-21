@@ -251,8 +251,8 @@ function draw_function(cr)
     cairo_select_font_face(cr, "Dejavu Sans Book", CAIRO_FONT_SLANT_NORMAL, CAIRO_FONT_WEIGHT_NORMAL)
 
     -- Position widget below network widgets (left side)
-    local widget_x = 30
-    local widget_y = 720
+    local widget_x = positions["crypto-conky-manager"].x
+    local widget_y = positions["crypto-conky-manager"].y
     draw_crypto_widget(cr, widget_x, widget_y)
 end
 

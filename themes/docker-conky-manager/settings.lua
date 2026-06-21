@@ -110,8 +110,8 @@ function draw_function(cr)
     cairo_select_font_face(cr, "Dejavu Sans Book", CAIRO_FONT_SLANT_NORMAL, CAIRO_FONT_WEIGHT_NORMAL)
 
     local widget_h = 180
-    local x = 1640
-    local y = 532
+    local x = positions["docker-conky-manager"].x
+    local y = positions["docker-conky-manager"].y
 
     draw_docker_containers(cr, x, y)
 end
