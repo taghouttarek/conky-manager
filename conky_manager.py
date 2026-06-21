@@ -18,6 +18,7 @@ import shutil
 import subprocess
 import zipfile
 import tarfile
+import threading
 from pathlib import Path
 from datetime import datetime
 
@@ -38,6 +39,8 @@ AUTOSTART_DIR = HOME / ".config" / "autostart"
 DATA_DIR = HOME / ".local" / "share" / "conky-manager"
 SETTINGS_FILE = DATA_DIR / "settings.json"
 LOG_FILE = DATA_DIR / "manager.log"
+VERSION = "2.0.1"
+REPO_URL = "https://github.com/taghouti-org/conky-manager.git"
 
 # Supported archive extensions
 ARCHIVE_EXTENSIONS = {
@@ -463,7 +466,7 @@ class ConkyManagerGUI:
 
     def __init__(self, root):
         self.root = root
-        self.root.title("Conky Manager")
+        self.root.title(f"Conky Manager v{VERSION}")
         self.root.geometry("800x600")
         self.root.minsize(700, 500)
 
@@ -472,10 +475,12 @@ class ConkyManagerGUI:
 
         self.manager = ConkyManager()
         self.selected_theme = None
+        self.has_update = False
 
         self.setup_ui()
         self.refresh_theme_list()
         self.auto_refresh()
+        self.check_for_updates()
 
     def set_window_icon(self):
         """Set the window icon"""
@@ -501,7 +506,7 @@ class ConkyManagerGUI:
         header_frame = ttk.Frame(main_frame)
         header_frame.pack(fill=tk.X, pady=(0, 10))
 
-        ttk.Label(header_frame, text="Conky Manager", font=('Helvetica', 16, 'bold')).pack(side=tk.LEFT)
+        ttk.Label(header_frame, text=f"Conky Manager v{VERSION}", font=('Helvetica', 16, 'bold')).pack(side=tk.LEFT)
 
         # Status indicator
         self.status_var = tk.StringVar(value="Stopped")
@@ -520,6 +525,8 @@ class ConkyManagerGUI:
         ttk.Button(toolbar_frame, text="Open ~/.conky", command=self.open_conky_dir).pack(side=tk.LEFT, padx=2)
 
         ttk.Separator(toolbar_frame, orient=tk.VERTICAL).pack(side=tk.LEFT, fill=tk.Y, padx=5)
+        self.update_btn = ttk.Button(toolbar_frame, text="Update", command=self.update_from_repo)
+        self.update_btn.pack(side=tk.RIGHT, padx=2)
         ttk.Button(toolbar_frame, text="Restart Manager", command=self.restart_manager).pack(side=tk.RIGHT, padx=2)
 
         # Theme list
@@ -774,11 +781,115 @@ class ConkyManagerGUI:
         """Open the layout editor"""
         layout_editor.LayoutEditor(self.root)
 
+    def check_for_updates(self):
+        """Check for updates on startup (non-blocking)"""
+        def _check():
+            repo_path = self.get_repo_path()
+            if not repo_path:
+                return
+            try:
+                result = subprocess.run(['git', '-C', str(repo_path), 'status'],
+                                        capture_output=True, text=True, timeout=5)
+                if result.returncode != 0:
+                    return
+
+                subprocess.run(['git', '-C', str(repo_path), 'fetch', 'origin'],
+                               capture_output=True, timeout=15)
+
+                result = subprocess.run(
+                    ['git', '-C', str(repo_path), 'rev-list', 'HEAD..origin/master', '--count'],
+                    capture_output=True, text=True, timeout=10
+                )
+                count = int(result.stdout.strip()) if result.stdout.strip() else 0
+
+                if count > 0:
+                    self.has_update = True
+                    self.root.after(0, self.blink_update_btn)
+            except Exception:
+                pass
+
+        threading.Thread(target=_check, daemon=True).start()
+
+    def blink_update_btn(self):
+        """Blink the update button if there are updates"""
+        if not self.has_update:
+            return
+        current = self.update_btn.cget("text")
+        if current == "Update":
+            self.update_btn.config(text="Update (NEW)")
+        else:
+            self.update_btn.config(text="Update")
+        self.root.after(1000, self.blink_update_btn)
+
     def restart_manager(self):
         """Restart the manager"""
         python = sys.executable
         self.root.destroy()
         os.execv(python, [python] + sys.argv)
+
+    def get_repo_path(self):
+        """Find the git repo path"""
+        # Check common locations
+        candidates = [
+            Path(__file__).parent,
+            HOME / "Documents" / "PERSO" / "repos" / "conky",
+            Path.home() / "repos" / "conky",
+        ]
+        for p in candidates:
+            result = subprocess.run(['git', '-C', str(p), 'rev-parse', '--git-dir'],
+                                    capture_output=True, timeout=5)
+            if result.returncode == 0:
+                return p
+        return None
+
+    def update_from_repo(self):
+        """Pull latest changes from git repo (does NOT apply to system)"""
+        repo_path = self.get_repo_path()
+        if not repo_path:
+            messagebox.showerror("Update Error", "Git repo not found")
+            return
+        try:
+            # Check if it's a git repo
+            result = subprocess.run(['git', '-C', str(repo_path), 'status'],
+                                    capture_output=True, text=True, timeout=10)
+            if result.returncode != 0:
+                messagebox.showerror("Update Error", "Not a git repository")
+                return
+
+            # Fetch and show what would change
+            subprocess.run(['git', '-C', str(repo_path), 'fetch', 'origin'],
+                           capture_output=True, timeout=30)
+
+            # Get diff stat
+            result = subprocess.run(
+                ['git', '-C', str(repo_path), 'log', '--oneline', 'HEAD..origin/master'],
+                capture_output=True, text=True, timeout=10
+            )
+            commits = result.stdout.strip()
+
+            if not commits:
+                messagebox.showinfo("Update", "Already up to date!")
+                return
+
+            # Show what will be pulled
+            result = subprocess.run(
+                ['git', '-C', str(repo_path), 'diff', '--stat', 'HEAD', 'origin/master'],
+                capture_output=True, text=True, timeout=10
+            )
+
+            msg = f"Found {len(commits.splitlines())} new commits:\n\n{commits}\n\nChanges:\n{result.stdout}\n\nPull to repo only (not applied to system)?"
+            if messagebox.askyesno("Update Available", msg):
+                result = subprocess.run(['git', '-C', str(repo_path), 'pull', 'origin', 'master'],
+                                        capture_output=True, text=True, timeout=30)
+                if result.returncode == 0:
+                    messagebox.showinfo("Update", f"Repo updated successfully!\n\n{result.stdout}\n\nRun 'Restart Manager' to reload.")
+                else:
+                    messagebox.showerror("Update Error", f"Pull failed:\n{result.stderr}")
+
+        except subprocess.TimeoutExpired:
+            messagebox.showerror("Update Error", "Git operation timed out")
+        except Exception as e:
+            messagebox.showerror("Update Error", str(e))
 
     def import_archive(self):
         """Import a theme from an archive"""
