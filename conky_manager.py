@@ -533,11 +533,11 @@ class ConkyManagerGUI:
         toolbar_frame = ctk.CTkFrame(main_frame, fg_color="transparent")
         toolbar_frame.pack(fill="x", pady=(0, 5))
 
-        ctk.CTkButton(toolbar_frame, text="Refresh", command=self.refresh_theme_list, width=90, height=24, border_spacing=0, corner_radius=3).pack(side="left", padx=2)
-        ctk.CTkButton(toolbar_frame, text="Import Archive", command=self.import_archive, width=110, height=24, border_spacing=0, corner_radius=3).pack(side="left", padx=2)
-        ctk.CTkButton(toolbar_frame, text="Import Folder", command=self.import_folder, width=110, height=24, border_spacing=0, corner_radius=3).pack(side="left", padx=2)
-        ctk.CTkButton(toolbar_frame, text="Layout", command=self.open_layout_editor, width=70, height=24, border_spacing=0, corner_radius=3).pack(side="left", padx=2)
-        ctk.CTkButton(toolbar_frame, text="Open ~/.conky", command=self.open_conky_dir, width=110, height=24, border_spacing=0, corner_radius=3).pack(side="left", padx=2)
+        ctk.CTkButton(toolbar_frame, text="Refresh", command=self.refresh_theme_list, width=90, height=20, border_spacing=0, corner_radius=0, font=('Helvetica', 10)).pack(side="left", padx=2)
+        ctk.CTkButton(toolbar_frame, text="Import Archive", command=self.import_archive, width=110, height=20, border_spacing=0, corner_radius=0, font=('Helvetica', 10)).pack(side="left", padx=2)
+        ctk.CTkButton(toolbar_frame, text="Import Folder", command=self.import_folder, width=110, height=20, border_spacing=0, corner_radius=0, font=('Helvetica', 10)).pack(side="left", padx=2)
+        ctk.CTkButton(toolbar_frame, text="Layout", command=self.open_layout_editor, width=70, height=20, border_spacing=0, corner_radius=0, font=('Helvetica', 10)).pack(side="left", padx=2)
+        ctk.CTkButton(toolbar_frame, text="Open ~/.conky", command=self.open_conky_dir, width=110, height=20, border_spacing=0, corner_radius=0, font=('Helvetica', 10)).pack(side="left", padx=2)
 
         sep1 = ctk.CTkFrame(toolbar_frame, width=2, fg_color="gray40")
         sep1.pack(side="left", fill="y", padx=5, pady=5)
@@ -547,15 +547,15 @@ class ConkyManagerGUI:
         self.monitor_var = tk.StringVar()
         self.monitor_combo = ctk.CTkComboBox(
             toolbar_frame, variable=self.monitor_var,
-            values=[], width=200, height=24, state="readonly",
-            command=self._on_monitor_change, corner_radius=3
+            values=[], width=200, height=20, state="readonly",
+            command=self._on_monitor_change, corner_radius=0, font=('Helvetica', 10)
         )
         self.monitor_combo.pack(side="left", padx=2)
         self._populate_monitors()
 
-        self.update_btn = ctk.CTkButton(toolbar_frame, text="Update", command=self.update_from_repo, width=80, height=24, border_spacing=0, corner_radius=3)
+        self.update_btn = ctk.CTkButton(toolbar_frame, text="Update", command=self.update_from_repo, width=80, height=20, border_spacing=0, corner_radius=0, font=('Helvetica', 10))
         self.update_btn.pack(side="right", padx=2)
-        ctk.CTkButton(toolbar_frame, text="Restart Manager", command=self.restart_manager, width=130, height=24, border_spacing=0, corner_radius=3).pack(side="right", padx=2)
+        ctk.CTkButton(toolbar_frame, text="Restart Manager", command=self.restart_manager, width=130, height=20, border_spacing=0, corner_radius=0, font=('Helvetica', 10)).pack(side="right", padx=2)
 
         # Theme list
         list_frame = ctk.CTkFrame(main_frame)
@@ -595,31 +595,31 @@ class ConkyManagerGUI:
         button_frame = ctk.CTkFrame(main_frame, fg_color="transparent")
         button_frame.pack(fill="x")
 
-        self.run_btn = ctk.CTkButton(button_frame, text="Run Theme", command=self.run_theme, state="disabled", width=100, height=24, border_spacing=0, corner_radius=3)
+        self.run_btn = ctk.CTkButton(button_frame, text="Run Theme", command=self.run_theme, state="disabled", width=100, height=20, border_spacing=0, corner_radius=0, font=('Helvetica', 10))
         self.run_btn.pack(side="left", padx=2)
 
-        self.stop_theme_btn = ctk.CTkButton(button_frame, text="Stop Theme", command=self.stop_theme, state="disabled", width=100, height=24, border_spacing=0, corner_radius=3)
+        self.stop_theme_btn = ctk.CTkButton(button_frame, text="Stop Theme", command=self.stop_theme, state="disabled", width=100, height=20, border_spacing=0, corner_radius=0, font=('Helvetica', 10))
         self.stop_theme_btn.pack(side="left", padx=2)
 
-        self.restart_theme_btn = ctk.CTkButton(button_frame, text="Restart Theme", command=self.restart_theme, state="disabled", width=120, height=24, border_spacing=0, corner_radius=3)
+        self.restart_theme_btn = ctk.CTkButton(button_frame, text="Restart Theme", command=self.restart_theme, state="disabled", width=120, height=20, border_spacing=0, corner_radius=0, font=('Helvetica', 10))
         self.restart_theme_btn.pack(side="left", padx=2)
 
-        self.stop_btn = ctk.CTkButton(button_frame, text="Stop All", command=self.stop_conky, width=80, height=24, border_spacing=0, corner_radius=3)
+        self.stop_btn = ctk.CTkButton(button_frame, text="Stop All", command=self.stop_conky, width=80, height=20, border_spacing=0, corner_radius=0, font=('Helvetica', 10))
         self.stop_btn.pack(side="left", padx=2)
 
-        self.restart_btn = ctk.CTkButton(button_frame, text="Restart", command=self.restart_all, width=80, height=24, border_spacing=0, corner_radius=3)
+        self.restart_btn = ctk.CTkButton(button_frame, text="Restart", command=self.restart_all, width=80, height=20, border_spacing=0, corner_radius=0, font=('Helvetica', 10))
         self.restart_btn.pack(side="left", padx=2)
 
         sep2 = ctk.CTkFrame(button_frame, width=2, fg_color="gray40")
         sep2.pack(side="left", fill="y", padx=5, pady=5)
 
-        self.edit_btn = ctk.CTkButton(button_frame, text="Edit", command=self.edit_theme, state="disabled", width=60, height=24, border_spacing=0, corner_radius=3)
+        self.edit_btn = ctk.CTkButton(button_frame, text="Edit", command=self.edit_theme, state="disabled", width=60, height=20, border_spacing=0, corner_radius=0, font=('Helvetica', 10))
         self.edit_btn.pack(side="left", padx=2)
 
-        self.folder_btn = ctk.CTkButton(button_frame, text="Open Folder", command=self.open_theme_folder, state="disabled", width=100, height=24, border_spacing=0, corner_radius=3)
+        self.folder_btn = ctk.CTkButton(button_frame, text="Open Folder", command=self.open_theme_folder, state="disabled", width=100, height=20, border_spacing=0, corner_radius=0, font=('Helvetica', 10))
         self.folder_btn.pack(side="left", padx=2)
 
-        self.delete_btn = ctk.CTkButton(button_frame, text="Delete", command=self.delete_theme, state="disabled", width=70, height=24, border_spacing=0, corner_radius=3)
+        self.delete_btn = ctk.CTkButton(button_frame, text="Delete", command=self.delete_theme, state="disabled", width=70, height=20, border_spacing=0, corner_radius=0, font=('Helvetica', 10))
         self.delete_btn.pack(side="left", padx=2)
 
         sep3 = ctk.CTkFrame(button_frame, width=2, fg_color="gray40")

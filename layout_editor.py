@@ -264,18 +264,19 @@ class LayoutEditor:
         toolbar = ctk.CTkFrame(self.root, fg_color="transparent", corner_radius=0)
         toolbar.pack(fill="x", padx=5, pady=(2, 2))
 
-        ctk.CTkButton(toolbar, text="Save", command=self.save, width=60, height=24, border_spacing=0, corner_radius=3).pack(side="left", padx=2)
-        ctk.CTkButton(toolbar, text="Reset", command=self.reset, width=60, height=24, border_spacing=0, corner_radius=3).pack(side="left", padx=2)
-        ctk.CTkButton(toolbar, text="Apply", command=self.apply_positions, width=60, height=24, border_spacing=0, corner_radius=3).pack(side="left", padx=2)
-        ctk.CTkButton(toolbar, text="Center All", command=self.center_all, width=80, height=24, border_spacing=0, corner_radius=3).pack(side="left", padx=2)
+        btn_font = ('Helvetica', 10)
+        ctk.CTkButton(toolbar, text="Save", command=self.save, width=60, height=20, border_spacing=0, corner_radius=0, font=btn_font).pack(side="left", padx=2)
+        ctk.CTkButton(toolbar, text="Reset", command=self.reset, width=60, height=20, border_spacing=0, corner_radius=0, font=btn_font).pack(side="left", padx=2)
+        ctk.CTkButton(toolbar, text="Apply", command=self.apply_positions, width=60, height=20, border_spacing=0, corner_radius=0, font=btn_font).pack(side="left", padx=2)
+        ctk.CTkButton(toolbar, text="Center All", command=self.center_all, width=80, height=20, border_spacing=0, corner_radius=0, font=btn_font).pack(side="left", padx=2)
 
         sep1 = ctk.CTkFrame(toolbar, width=2, fg_color="gray40")
         sep1.pack(side="left", fill="y", padx=5, pady=5)
 
-        ctk.CTkButton(toolbar, text="-", command=self.zoom_out, width=30, height=24, border_spacing=0, corner_radius=3).pack(side="left", padx=2)
+        ctk.CTkButton(toolbar, text="-", command=self.zoom_out, width=30, height=20, border_spacing=0, corner_radius=0, font=btn_font).pack(side="left", padx=2)
         self.zoom_label = ctk.CTkLabel(toolbar, text=f"{int(self.scale * 100)}%")
         self.zoom_label.pack(side="left", padx=2)
-        ctk.CTkButton(toolbar, text="+", command=self.zoom_in, width=30, height=24, border_spacing=0, corner_radius=3).pack(side="left", padx=2)
+        ctk.CTkButton(toolbar, text="+", command=self.zoom_in, width=30, height=20, border_spacing=0, corner_radius=0, font=btn_font).pack(side="left", padx=2)
 
         self.mode_var = tk.StringVar(value="move")
         ctk.CTkRadioButton(toolbar, text="Move", variable=self.mode_var, value="move").pack(side="left", padx=10)
@@ -285,15 +286,15 @@ class LayoutEditor:
         sep2.pack(side="left", fill="y", padx=5, pady=5)
 
         # Detect button
-        ctk.CTkButton(toolbar, text="Detect", command=self._on_detect, width=60, height=24, border_spacing=0, corner_radius=3).pack(side="left", padx=2)
+        ctk.CTkButton(toolbar, text="Detect", command=self._on_detect, width=60, height=20, border_spacing=0, corner_radius=0, font=btn_font).pack(side="left", padx=2)
 
         # Monitor dropdown
         self.monitor_var = tk.StringVar()
         self.monitor_labels = [self._monitor_label(m) for m in self.monitors]
         self.monitor_combo = ctk.CTkComboBox(
             toolbar, variable=self.monitor_var,
-            values=self.monitor_labels, width=250, height=24, state="readonly",
-            command=self._on_monitor_change, corner_radius=3
+            values=self.monitor_labels, width=250, height=20, state="readonly",
+            command=self._on_monitor_change, corner_radius=0, font=btn_font
         )
         self.monitor_combo.pack(side="left", padx=2)
         # Set initial selection
@@ -304,22 +305,22 @@ class LayoutEditor:
         self.resolution_var = tk.StringVar(value=self._current_preset())
         self.resolution_combo = ctk.CTkComboBox(
             toolbar, variable=self.resolution_var,
-            values=RESOLUTION_PRESETS, width=140, height=24, state="readonly",
-            command=self._on_preset_change, corner_radius=3
+            values=RESOLUTION_PRESETS, width=140, height=20, state="readonly",
+            command=self._on_preset_change, corner_radius=0, font=btn_font
         )
         self.resolution_combo.pack(side="left", padx=2)
 
         # Width/Height entry fields
         ctk.CTkLabel(toolbar, text="W:").pack(side="left", padx=(8, 2))
         self.width_var = tk.StringVar(value=str(self.screen_w))
-        self.width_entry = ctk.CTkEntry(toolbar, textvariable=self.width_var, width=60, height=24, corner_radius=3)
+        self.width_entry = ctk.CTkEntry(toolbar, textvariable=self.width_var, width=60, height=20, corner_radius=0)
         self.width_entry.pack(side="left", padx=2)
         self.width_entry.bind("<Return>", self._on_resolution_entry)
         self.width_entry.bind("<FocusOut>", self._on_resolution_entry)
 
         ctk.CTkLabel(toolbar, text="H:").pack(side="left", padx=(4, 2))
         self.height_var = tk.StringVar(value=str(self.screen_h))
-        self.height_entry = ctk.CTkEntry(toolbar, textvariable=self.height_var, width=60, height=24, corner_radius=3)
+        self.height_entry = ctk.CTkEntry(toolbar, textvariable=self.height_var, width=60, height=20, corner_radius=0)
         self.height_entry.pack(side="left", padx=2)
         self.height_entry.bind("<Return>", self._on_resolution_entry)
         self.height_entry.bind("<FocusOut>", self._on_resolution_entry)
