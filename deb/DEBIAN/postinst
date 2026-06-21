@@ -1,0 +1,36 @@
+#!/bin/bash
+set -e
+
+REPO_URL="https://github.com/taghouti-org/conky-manager.git"
+INSTALL_DIR="/opt/conky-manager"
+CLONE_DIR="/tmp/conky-manager-install"
+
+echo "=== Conky Manager Installer ==="
+echo ""
+
+# Remove old installation if exists
+if [ -d "$INSTALL_DIR" ]; then
+    echo "Removing old installation..."
+    rm -rf "$INSTALL_DIR"
+fi
+
+# Clone the repo
+echo "Cloning repository..."
+if [ -d "$CLONE_DIR" ]; then
+    rm -rf "$CLONE_DIR"
+fi
+git clone "$REPO_URL" "$CLONE_DIR"
+
+# Run the installer
+echo "Running installer..."
+cd "$CLONE_DIR"
+bash install.sh
+
+# Cleanup
+echo ""
+echo "Cleaning up..."
+rm -rf "$CLONE_DIR"
+
+echo ""
+echo "=== Installation Complete ==="
+echo "Run: conky-manager"
