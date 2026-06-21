@@ -73,15 +73,30 @@ function draw_k8s_context(cr, x, y)
     draw_icon_k8s(cr, x + 15, y + 15, 20)
     draw_text(cr, x + 35, y + 20, "K8S", 12, transparency_value)
 
-    local context = conky_parse('${exec kubectl config current-context 2>/dev/null || echo "N/A"}')
+    local ok1, context = pcall(function()
+        return conky_parse('${exec kubectl config current-context 2>/dev/null || echo "N/A"}')
+    end)
+    if not ok1 then context = "N/A" end
+    context = context or "N/A"
+    if context == "" then context = "N/A" end
     draw_text(cr, x + 10, y + 45, "Context", 12, transparency_text)
     draw_text(cr, x + 10, y + 60, context, 14, transparency_value)
 
-    local namespace = conky_parse('${exec kubectl config view --minify --output "jsonpath={..namespace}" 2>/dev/null || echo "default"}')
+    local ok2, namespace = pcall(function()
+        return conky_parse('${exec kubectl config view --minify --output "jsonpath={..namespace}" 2>/dev/null || echo "default"}')
+    end)
+    if not ok2 then namespace = "default" end
+    namespace = namespace or "default"
+    if namespace == "" then namespace = "default" end
     draw_text(cr, x + 10, y + 80, "Namespace", 12, transparency_text)
     draw_text(cr, x + 10, y + 95, namespace, 12, transparency_value)
 
-    local nodes = conky_parse('${exec kubectl get nodes --no-headers 2>/dev/null | wc -l || echo "0"}')
+    local ok3, nodes = pcall(function()
+        return conky_parse('${exec kubectl get nodes --no-headers 2>/dev/null | wc -l || echo "0"}')
+    end)
+    if not ok3 then nodes = "0" end
+    nodes = tostring(nodes or "0"):match("^%s*(.-)%s*$")
+    if nodes == "" then nodes = "0" end
     draw_text(cr, x + 10, y + 115, "Nodes: " .. nodes, 12, transparency_value)
 end
 
