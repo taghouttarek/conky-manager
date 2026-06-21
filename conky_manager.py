@@ -1096,9 +1096,9 @@ class ConkyManagerGUI:
                     messagebox.showerror("Update Error", f"Reset failed:\n{result.stderr}")
                     return
                 # Remove untracked files (e.g. deleted themes)
-                subprocess.run(['git', '-C', str(repo_path), 'clean', '-fdx'],
+                clean_result = subprocess.run(['git', '-C', str(repo_path), 'clean', '-fdx'],
                                capture_output=True, text=True, timeout=30)
-                if result.returncode == 0:
+                if clean_result.returncode == 0:
                     import shutil
                     installed_dir = Path.home() / ".local" / "share" / "conky-manager"
                     conky_config = Path.home() / ".config" / "conky"
