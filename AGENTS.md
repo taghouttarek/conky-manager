@@ -158,6 +158,18 @@ conky.text = [[
 - Per-widget minimum sizes via `MIN_WIDGET_SIZES`
 - Configurable resolution with presets and manual entry
 
+### Gray Theme Variants (v2.2.7)
+- Created `*-gray-conky-manager` variants for all themes (except weather)
+- Solid dark gray (#232323) backgrounds, white text/icons
+- Background uses `HTML_bg_color` with `r_bg, g_bg, b_bg` in `draw_square`
+- Text/icons use `HTML_color` (white) with `r, g, b` — separate from background
+- Border color: `#000000` at 0.2 alpha (matching weather widget)
+- `operator_transpose` uses `CAIRO_OPERATOR_OVER` (not `CLEAR`) for text on solid bg
+- `own_window_transparent = true` (solid bg drawn via `CAIRO_OPERATOR_SOURCE`)
+- Added gray entries to `positions.lua` and `layout.json`
+- Settings window reads/writes both regular and gray variants
+- Update mechanism preserves gray theme config values
+
 ## Adding New Themes
 
 1. Create `themes/<name>-conky-manager/` directory (MUST use `-conky-manager` suffix)

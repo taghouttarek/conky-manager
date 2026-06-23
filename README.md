@@ -31,7 +31,7 @@ A full-featured Python/CustomTkinter GUI for managing Conky themes on Linux.
 - **Theme Deletion** - Remove unused themes (multi-select supported)
 - **Dark Mode** - Modern dark UI with blue accent theme via CustomTkinter
 - **Wayland Support** - Full compatibility with Wayland (cairo_xlib optional via pcall)
-- **Wayland Support** - Full compatibility with Wayland via cairo_xlib
+- **Gray Theme Variants** - Solid dark gray backgrounds (#232323) for all themes, matching weather widget style
 
 ## Included Themes
 
@@ -58,13 +58,16 @@ A full-featured Python/CustomTkinter GUI for managing Conky themes on Linux.
 | `calendar-conky-manager` | Calendar with circular design |
 | `revisited-conky-manager` | Revisited desktop widgets (circle/square, horizontal/vertical) |
 
+### Gray Variants
+All themes (except weather, which already has a dark background) have `*-gray-conky-manager` variants with solid dark gray (#232323) backgrounds and white text/icons, matching the weather widget style.
+
 ## Installation
 
 ### Option 1: .deb Package (Recommended)
 
 ```bash
 # Download and install
-sudo dpkg -i conky-manager_2.0.5_all.deb
+sudo dpkg -i conky-manager_2.2.7_all.deb
 sudo apt install -f  # Fix dependencies if needed
 ```
 
