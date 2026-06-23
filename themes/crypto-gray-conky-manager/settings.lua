@@ -4,7 +4,8 @@ currency = "usd"
 coin_symbol = "SOL"
 chart_days = 7
 -- ###Style (matching system-widgets)###
-HTML_color = "#232323"
+HTML_color = "#FFFFFF"
+HTML_bg_color = "#232323"
 HTML_color_border = "#000000"
 transparency_bg = 1.0
 transparency_border = 0.2
@@ -42,6 +43,7 @@ end
 
 r, g, b = hex2rgb(HTML_color)
 r_border, g_border, b_border = hex2rgb(HTML_color_border)
+r_bg, g_bg, b_bg = hex2rgb(HTML_bg_color)
 r_up, g_up, b_up = hex2rgb(HTML_change_up)
 r_down, g_down, b_down = hex2rgb(HTML_change_down)
 r_line, g_line, b_line = hex2rgb(HTML_chart_line)
@@ -79,7 +81,7 @@ end
 
 function draw_square(cr, pos_x, pos_y, rectangle_x, rectangle_y, trans)
     cairo_set_operator(cr, operator[mode])
-    cairo_set_source_rgba(cr, r, g, b, trans)
+    cairo_set_source_rgba(cr, r_bg, g_bg, b_bg, trans)
     cairo_set_line_width(cr, 2)
     cairo_rectangle(cr, pos_x, pos_y, rectangle_x, rectangle_y)
     cairo_fill(cr)

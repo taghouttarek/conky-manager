@@ -5,12 +5,13 @@ Change the parameters below to fit your needs.
 
 -- Colors
 
-HTML_color_battery = "#232323"
-HTML_color_drive_1 = "#232323"
-HTML_color_drive_2 = "#232323"
+HTML_color_battery = "#FFFFFF"
+HTML_bg_color = "#232323"
+HTML_color_drive_1 = "#FFFFFF"
+HTML_color_drive_2 = "#FFFFFF"
 HTML_color_CPU = "#FFFFFF"
-HTML_color_RAM = "#232323"
-HTML_color_BORDER = "#000000"
+HTML_color_RAM = "#FFFFFF"
+HTML_color_BORDER = "#FFFFFF"
 transparency_battery = 1.0
 transparency_drive_1 = 1.0
 transparency_drive_2 = 1.0
@@ -116,6 +117,7 @@ end
 
 
 r_battery, g_battery, b_battery = hex2rgb(HTML_color_battery)
+r_bg, g_bg, b_bg = hex2rgb(HTML_bg_color)
 r_CPU, g_CPU, b_CPU = hex2rgb(HTML_color_CPU)
 r_RAM, g_RAM, b_RAM = hex2rgb(HTML_color_RAM)
 
@@ -140,7 +142,7 @@ end
 
 function draw_circle(cr,pos_x,pos_y,color1,color2,color3,trans,parameter)
 	cairo_set_operator(cr, operator[mode])
-	cairo_set_source_rgba(cr, color1,color2,color3,trans)
+	cairo_set_source_rgba(cr, r_bg, g_bg, b_bg, trans)
 	cairo_set_line_width(cr, 2)
 	
 	cairo_arc(cr,pos_x+10+34,(88/2)+pos_y,54,0*math.pi/180,360*math.pi/180)

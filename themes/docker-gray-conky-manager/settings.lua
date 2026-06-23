@@ -2,7 +2,8 @@ require 'cairo'
 pcall(require, 'cairo_xlib')
 os.setlocale("en_US.utf8", "numeric")
 
-HTML_color = "#232323"
+HTML_color = "#FFFFFF"
+HTML_bg_color = "#232323"
 HTML_color_border = "#000000"
 transparency_bg = 1.0
 transparency_border = 0.2
@@ -22,6 +23,7 @@ end
 
 r, g, b = hex2rgb(HTML_color)
 r_border, g_border, b_border = hex2rgb(HTML_color_border)
+r_bg, g_bg, b_bg = hex2rgb(HTML_bg_color)
 
 function draw_icon_docker(cr, x, y, size)
     cairo_set_operator(cr, operator_transpose[mode])
@@ -49,7 +51,7 @@ end
 
 function draw_square(cr, pos_x, pos_y, rectangle_x, rectangle_y, trans)
     cairo_set_operator(cr, operator[mode])
-    cairo_set_source_rgba(cr, r, g, b, trans)
+    cairo_set_source_rgba(cr, r_bg, g_bg, b_bg, trans)
     cairo_set_line_width(cr, 2)
     cairo_rectangle(cr, pos_x, pos_y, rectangle_x, rectangle_y)
     cairo_fill(cr)

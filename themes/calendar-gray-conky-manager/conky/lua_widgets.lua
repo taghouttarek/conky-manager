@@ -12,7 +12,8 @@ graphic_card_model = "Type Your Model Here"
 enable_graphic_card_temperature_sensor= "No" 
 
 -- Colors (matching Revisited-2)
-HTML_colors = "#232323"
+HTML_colors = "#FFFFFF"
+HTML_bg_color = "#232323"
 HTML_colors_current = "#FFFFFF"
 transparency = 1.0 -- Background transparency (matching Revisited-2)
 transparency_active = 0.9 -- Active/current elements transparency
@@ -95,6 +96,7 @@ function hex2rgb(hex)
 end
 
 r,g,b = hex2rgb(HTML_colors)
+r_bg,g_bg,b_bg = hex2rgb(HTML_bg_color)
 r_c,g_c,b_c = hex2rgb(HTML_colors_current)
 
 r_border, g_border, b_border = hex2rgb(HTML_colors)
@@ -225,11 +227,11 @@ function draw_function(cr)
   local widget_h = 500
   -- Draw solid gray background
   cairo_set_operator(cr, CAIRO_OPERATOR_SOURCE)
-  cairo_set_source_rgba(cr, r,g,b, transparency)
+  cairo_set_source_rgba(cr, r_bg,g_bg,b_bg, transparency)
   cairo_rectangle(cr, widget_x, widget_y, widget_w, widget_h)
   cairo_fill(cr)
   -- Border
-  cairo_set_source_rgba(cr, r_border,g_border,b_border,transparency_border)
+  cairo_set_source_rgba(cr, r_border,g_border,b_border,0.2)
   cairo_set_line_width(cr, border_size)
   cairo_rectangle(cr, widget_x, widget_y, widget_w, widget_h)
   cairo_stroke(cr)
