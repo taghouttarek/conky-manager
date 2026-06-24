@@ -1,22 +1,22 @@
 -- All Widgets Theme (Glass)
 -- Unified conky theme containing all widgets in a single instance
--- Glass style: translucent frosted glass, soft borders, clean modern look
+-- Glass style: solid dark glass panels, bright accent borders, clean modern look
 
 -- ###Style###
 HTML_color = "#FFFFFF"
-HTML_color_border = "#FFFFFF"
-HTML_bg_color = "#1a1a2e"
-transparency_bg = 0.35
-transparency_border = 0.25
-transparency_text = 0.95
+HTML_color_border = "#38bdf8"
+HTML_bg_color = "#0f172a"
+transparency_bg = 1.0
+transparency_border = 0.8
+transparency_text = 1.0
 transparency_value = 1.0
 
 -- ###Mode (1 = background, 2 = no background)###
 mode = 1
-border_size = 1
+border_size = 2
 
 -- ###Glass accent color###
-HTML_accent = "#88c0d0"
+HTML_accent = "#38bdf8"
 
 -- ###Bandwidth settings###
 iface = "auto"
@@ -68,7 +68,7 @@ pcall(require, 'cairo_xlib')
 assert(os.setlocale("en_US.utf8", "numeric"))
 
 operator = {CAIRO_OPERATOR_SOURCE, CAIRO_OPERATOR_CLEAR}
-operator_transpose = {CAIRO_OPERATOR_CLEAR, CAIRO_OPERATOR_SOURCE}
+operator_transpose = {CAIRO_OPERATOR_OVER, CAIRO_OPERATOR_SOURCE}
 
 function hex2rgb(hex)
     hex = hex:gsub("#","")
@@ -83,23 +83,23 @@ r_crit_kev, g_crit_kev, b_crit_kev = hex2rgb(HTML_critical_kev)
 r_crit_infra, g_crit_infra, b_crit_infra = hex2rgb(HTML_critical_infra)
 
 -- Crypto extra colors
-HTML_chart_line = "#FFFFFF"
-HTML_chart_fill = "#FFFFFF"
-HTML_change_up = "#00ff88"
-HTML_change_down = "#ff4444"
-transparency_chart = 0.3
+HTML_chart_line = "#38bdf8"
+HTML_chart_fill = "#38bdf8"
+HTML_change_up = "#4ade80"
+HTML_change_down = "#f87171"
+transparency_chart = 0.4
 r_up, g_up, b_up = hex2rgb(HTML_change_up)
 r_down, g_down, b_down = hex2rgb(HTML_change_down)
 r_line, g_line, b_line = hex2rgb(HTML_chart_line)
 r_fill, g_fill, b_fill = hex2rgb(HTML_chart_fill)
 
 -- Weather colors
-HTML_circle = "#FFFFFF"
-HTML_border_w = "#000000"
+HTML_circle = "#38bdf8"
+HTML_border_w = "#38bdf8"
 HTML_text_w = "#FFFFFF"
-transparency_w = 0.6
-transparency_border_w = 0.2
-transparency_text_w = 0.5
+transparency_w = 0.3
+transparency_border_w = 0.8
+transparency_text_w = 1.0
 transparency_weather_icon = 1.0
 City_font = 9
 Temperature_font = 24
@@ -109,16 +109,16 @@ r_border_w, g_border_w, b_border_w = hex2rgb(HTML_border_w)
 r_text_w, g_text_w, b_text_w = hex2rgb(HTML_text_w)
 
 -- Revisited colors
-HTML_color_battery = "#FFFFFF"
-HTML_color_drive_1 = "#FFFFFF"
-HTML_color_drive_2 = "#FFFFFF"
-HTML_background_CPU = "#FFFFFF"
-HTML_color_RAM = "#FFFFFF"
-transparency_battery = 0.6
-transparency_drive_1 = 0.6
-transparency_drive_2 = 0.6
-transparency_CPU = 0.6
-transparency_RAM = 0.6
+HTML_color_battery = "#4ade80"
+HTML_color_drive_1 = "#38bdf8"
+HTML_color_drive_2 = "#a78bfa"
+HTML_background_CPU = "#f472b6"
+HTML_color_RAM = "#fbbf24"
+transparency_battery = 0.9
+transparency_drive_1 = 0.9
+transparency_drive_2 = 0.9
+transparency_CPU = 0.9
+transparency_RAM = 0.9
 r_battery, g_battery, b_battery = hex2rgb(HTML_color_battery)
 r_CPU, g_CPU, b_CPU = hex2rgb(HTML_background_CPU)
 r_RAM, g_RAM, b_RAM = hex2rgb(HTML_color_RAM)
@@ -128,10 +128,10 @@ drive_colors = {{r_drive_1, g_drive_1, b_drive_1, transparency_drive_1},
                 {r_drive_2, g_drive_2, b_drive_2, transparency_drive_2}}
 
 -- Calendar colors
-HTML_colors_cal = "#FFFFFF"
-HTML_colors_current_cal = "#FFFFFF"
-transparency_cal = 0.6
-transparency_active_cal = 0.9
+HTML_colors_cal = "#38bdf8"
+HTML_colors_current_cal = "#f472b6"
+transparency_cal = 0.5
+transparency_active_cal = 1.0
 r_cal, g_cal, b_cal = hex2rgb(HTML_colors_cal)
 r_c_cal, g_c_cal, b_c_cal = hex2rgb(HTML_colors_current_cal)
 r_border_cal, g_border_cal, b_border_cal = hex2rgb(HTML_colors_cal)
@@ -141,15 +141,15 @@ r_border_cal, g_border_cal, b_border_cal = hex2rgb(HTML_colors_cal)
 -- ============================================================
 
 function draw_square(cr, pos_x, pos_y, rectangle_x, rectangle_y, trans)
-    -- Glass background: dark translucent fill
+    -- Glass background: solid dark fill
     cairo_set_operator(cr, operator[mode])
     cairo_set_source_rgba(cr, r_bg, g_bg, b_bg, trans or transparency_bg)
     cairo_rectangle(cr, pos_x, pos_y, rectangle_x, rectangle_y)
     cairo_fill(cr)
 
-    -- Glass border: soft white outline
+    -- Glass border: bright accent outline
     cairo_set_operator(cr, operator[mode])
-    cairo_set_source_rgba(cr, r_border, g_border, b_border, transparency_border)
+    cairo_set_source_rgba(cr, r_accent, g_accent, b_accent, transparency_border)
     cairo_set_line_width(cr, border_size)
     cairo_rectangle(cr, pos_x, pos_y, rectangle_x, rectangle_y)
     cairo_stroke(cr)
@@ -775,6 +775,8 @@ function cal_create_circle(cr, w_c, h_c, elements, distance_between_blocks, two_
     for i = 1, elements do
         if i == current then
             cairo_set_source_rgba(cr, r_c_cal, g_c_cal, b_c_cal, transparency_active_cal)
+        else
+            cairo_set_source_rgba(cr, r, g, b, transparency_text)
         end
         if string.len(tostring(i)) == 2 and days == "" then
             cairo_move_to(cr, w_c / 2 + ((radius + radius_shift_for_text) * math.cos((start_angel + ((number_of_arcs - two_number_degree) / 2)) * (math.pi / 180.0))), h_c / 2 + ((radius + radius_shift_for_text) * math.sin((start_angel + ((number_of_arcs - two_number_degree) / 2)) * (math.pi / 180.0))))
@@ -810,14 +812,16 @@ function draw_calendar_widget(cr, x, y)
     cairo_select_font_face(cr, "DejaVu Sans Book", CAIRO_FONT_SLANT_NORMAL, CAIRO_FONT_WEIGHT_NORMAL)
 
     cal_create_circle(cr, 2 * center_x, 2 * center_y, 52.0, 2, 3.5, 225, 3, CAIRO_OPERATOR_OVER, 4, tonumber(conky_parse('${exec date +%V}')), '')
-    cal_create_circle(cr, 2 * center_x, 2 * center_y, tonumber(conky_parse('${exec cal |egrep -v [a-z] |wc -w}')), 2, 3.5, 200, 13, CAIRO_OPERATOR_CLEAR, -4.5, tonumber(conky_parse('${exec date +%d}')), '')
+    cal_create_circle(cr, 2 * center_x, 2 * center_y, tonumber(conky_parse('${exec cal |egrep -v [a-z] |wc -w}')), 2, 3.5, 200, 13, CAIRO_OPERATOR_OVER, -4.5, tonumber(conky_parse('${exec date +%d}')), '')
 
     local days = {"Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"}
-    cal_create_circle(cr, 2 * center_x, 2 * center_y, 7, 2, 3.5, 150, 13, CAIRO_OPERATOR_CLEAR, -4, tonumber(conky_parse('${exec date +%u}')), days, 8.5)
+    cal_create_circle(cr, 2 * center_x, 2 * center_y, 7, 2, 3.5, 150, 13, CAIRO_OPERATOR_OVER, -4, tonumber(conky_parse('${exec date +%u}')), days, 8.5)
 
     local month = {"Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"}
-    cal_create_circle(cr, 2 * center_x, 2 * center_y, 12, 2, 3.5, 175, 13, CAIRO_OPERATOR_CLEAR, -4, tonumber(conky_parse('${exec date +%m}')), month, 5.5)
+    cal_create_circle(cr, 2 * center_x, 2 * center_y, 12, 2, 3.5, 175, 13, CAIRO_OPERATOR_OVER, -4, tonumber(conky_parse('${exec date +%m}')), month, 5.5)
 
+    cairo_set_operator(cr, CAIRO_OPERATOR_OVER)
+    cairo_set_source_rgba(cr, r, g, b, transparency_value)
     cairo_set_font_size(cr, 42)
     cairo_move_to(cr, center_x - 54, center_y)
     cairo_show_text(cr, conky_parse('${exec date +%H}') .. ":" .. conky_parse('${exec date +%M}'))
@@ -834,7 +838,8 @@ function draw_calendar_widget(cr, x, y)
     cairo_arc(cr, center_x + 60, center_y - 80, 14, 0, 2 * math.pi)
     cairo_fill(cr)
 
-    cairo_set_operator(cr, CAIRO_OPERATOR_CLEAR)
+    cairo_set_operator(cr, CAIRO_OPERATOR_OVER)
+    cairo_set_source_rgba(cr, r, g, b, transparency_value)
     cairo_move_to(cr, center_x - 64, center_y - 75)
     cairo_show_text(cr, "R")
     cairo_move_to(cr, center_x + 56, center_y - 75)
@@ -861,8 +866,8 @@ function draw_calendar_widget(cr, x, y)
     local dur_sec = math.floor(dur_val % 60)
     local time_str = string.format("%d:%02d / %d:%02d", pos_min, pos_sec, dur_min, dur_sec)
 
-    cairo_set_operator(cr, CAIRO_OPERATOR_SOURCE)
-    cairo_set_source_rgba(cr, r_cal, g_cal, b_cal, transparency_active_cal)
+    cairo_set_operator(cr, CAIRO_OPERATOR_OVER)
+    cairo_set_source_rgba(cr, r, g, b, transparency_value)
     cairo_set_font_size(cr, 10)
     cairo_move_to(cr, mx - 40, music_y)
     cairo_show_text(cr, "MUSIC: " .. status)
@@ -874,7 +879,7 @@ function draw_calendar_widget(cr, x, y)
         cairo_move_to(cr, mx - 40, music_y + 30)
         cairo_show_text(cr, title)
     end
-    cairo_set_source_rgba(cr, r_cal, g_cal, b_cal, transparency_cal)
+    cairo_set_source_rgba(cr, r, g, b, 0.7)
     cairo_move_to(cr, mx - 40, music_y + 50)
     cairo_show_text(cr, time_str)
     if dur_val > 0 then
@@ -942,6 +947,7 @@ function revisited_draw_battery(cr, pos_x, pos_y, start_rect_height, color1, col
     end
 
     cairo_set_operator(cr, operator_transpose[mode])
+    cairo_set_source_rgba(cr, r, g, b, transparency_value)
     cairo_set_font_size(cr, 21)
     cairo_move_to(cr, pos_x + 69 + 10, gap_y_text + pos_y)
     local percent = conky_parse('${battery_percent ' .. battery_number .. '}')
@@ -1015,6 +1021,7 @@ function revisited_draw_folder(cr, x_pos, y_pos, start_rect_height, hdd, folder_
     cairo_close_path(cr)
     cairo_fill(cr)
     cairo_set_operator(cr, operator_transpose[mode])
+    cairo_set_source_rgba(cr, r, g, b, transparency_value)
     cairo_set_font_size(cr, 21)
     cairo_move_to(cr, x_pos + 10 + 34 + 34 + 10, gap_y_text + y_pos)
     cairo_show_text(cr, conky_parse('${fs_free_perc ' .. hdd .. '}') .. "%")
@@ -1033,6 +1040,7 @@ function revisited_draw_cpu(cr, number_of_cpus, x_pos, y_pos, r_cpu, g_cpu, b_cp
         cairo_rectangle(cr, x_pos + ((68 - (5 * (number_of_cpus - 1))) / number_of_cpus + 5) * (i - 1), y_pos + 68, (68 - (5 * (number_of_cpus - 1))) / number_of_cpus, -multipler * tonumber(conky_parse('${cpu cpu' .. tostring(i) .. '}')))
         cairo_fill(cr)
     end
+    cairo_set_source_rgba(cr, r, g, b, transparency_value)
     cairo_set_font_size(cr, 21)
     cairo_move_to(cr, x_pos + 68 + 10, gap_y_text + y_pos - 10)
     cairo_show_text(cr, conky_parse('${cpu cpu0}' .. "%"))
@@ -1079,10 +1087,12 @@ function revisited_draw_ram(cr, x_pos, y_pos, radius_r, r_ram, g_ram, b_ram, tra
         end
     end
     cairo_set_operator(cr, operator[mode])
+    cairo_set_source_rgba(cr, r, g, b, transparency_value)
     cairo_set_font_size(cr, 21)
     cairo_move_to(cr, x_pos - 1 + 33 - 22, y_pos + align_middle + 1 + 19 + 8)
     cairo_show_text(cr, "RAM")
     cairo_set_operator(cr, operator_transpose[mode])
+    cairo_set_source_rgba(cr, r, g, b, transparency_value)
     cairo_set_font_size(cr, 21)
     cairo_move_to(cr, x_pos + 68 + 10, gap_y_text + y_pos - 10)
     cairo_show_text(cr, tostring(100 - tonumber(conky_parse('${memperc}'))) .. "%")
