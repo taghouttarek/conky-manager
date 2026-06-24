@@ -198,10 +198,16 @@ class WidgetRect:
         self.canvas.coords(self.v_btn, bx + bw + 2, by, bx + bw * 2 + 2, by + bh)
         self.canvas.coords(self.v_btn_text, bx + bw + 2 + bw / 2, by + bh / 2)
 
-    def move(self, dx, dy):
-        self.x = max(0, min(self.screen_w - self.w, self.x + dx))
-        self.y = max(0, min(self.screen_h - self.h, self.y + dy))
-        self.update_position()
+    def move(self, dx, dy, dry_run=False):
+        new_x = max(0, min(self.screen_w - self.w, self.x + dx))
+        new_y = max(0, min(self.screen_h - self.h, self.y + dy))
+        actual_dx = new_x - self.x
+        actual_dy = new_y - self.y
+        if not dry_run:
+            self.x = new_x
+            self.y = new_y
+            self.update_position()
+        return actual_dx, actual_dy
 
     def resize(self, dx, dy):
         new_w = max(self.min_w, self.w + dx)
@@ -582,14 +588,12 @@ class LayoutEditor:
         else:
             primary = next(iter(self.selected))
             if primary in self.widgets:
-                prev_x = self.widgets[primary].x
-                prev_y = self.widgets[primary].y
-                self.widgets[primary].move(dx, dy)
+                actual_dx, actual_dy = self.widgets[primary].move(dx, dy)
                 snap_dx, snap_dy, guides = self._compute_snap(primary)
                 if snap_dx != 0 or snap_dy != 0:
-                    self.widgets[primary].move(snap_dx, snap_dy)
-                actual_dx = self.widgets[primary].x - prev_x
-                actual_dy = self.widgets[primary].y - prev_y
+                    snap_dx, snap_dy = self.widgets[primary].move(snap_dx, snap_dy)
+                    actual_dx += snap_dx
+                    actual_dy += snap_dy
                 for name in self.selected:
                     if name in self.widgets and name != primary:
                         self.widgets[name].move(actual_dx, actual_dy)
