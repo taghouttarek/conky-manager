@@ -202,6 +202,13 @@ conky.text = [[
 - Created default `layout.json` with widget dimensions
 - Fixed font name: `Dejavu Sans` → `DejaVu Sans` (correct X11 font name)
 
+### Widget Visibility Toggles (v3.1.0)
+- Added `enabled_<widget>` boolean flags to unified `settings.lua` (network, bandwidth, processes, docker, k8s, crypto, kev, infra, weather, calendar, revisited)
+- `draw_function` checks each `enabled_<widget>` flag before drawing
+- Settings window has "Widget Visibility" section with 11 CTkSwitch toggles
+- Toggles apply to both white and gray unified themes
+- Update mechanism preserves enabled_* boolean values during theme updates
+
 ## Adding New Themes
 
 1. Create `themes/<name>-conky-manager/` directory (MUST use `-conky-manager` suffix)
