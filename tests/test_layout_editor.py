@@ -262,7 +262,6 @@ class TestApplyPositions:
         content = pos_file.read_text()
         assert 'screen = {w = 2560, h = 1440, monitor = 1}' in content
         assert '["test-conky-manager"] = {x = 100, y = 200}' in content
-        assert "minimum_width = 2560" in conkyrc.read_text()
 
 
 class TestMonitorIndex:
@@ -280,7 +279,7 @@ class TestMonitorIndex:
             with patch("layout_editor.subprocess.Popen") as mock_popen:
                 mock_popen.return_value = MagicMock()
                 with patch.object(layout_editor.Path, 'home', return_value=tmp_path):
-                    editor.restart_themes(["any-widget"])
+                    editor.restart_themes(["all-widgets-conky-manager"])
                 call_args = mock_popen.call_args[0][0]
                 assert "-m" in call_args
                 assert call_args[call_args.index("-m") + 1] == "1"

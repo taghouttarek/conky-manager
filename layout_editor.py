@@ -102,6 +102,10 @@ def save_positions(screen_w, screen_h, monitor, widgets):
     ]
     for name, widget in sorted(widgets.items()):
         lines.append(f'    ["{name}"] = {{x = {int(widget.x)}, y = {int(widget.y)}}},')
+        # Mirror to gray variant for backward compatibility
+        gray_name = name.replace("-conky-manager", "-gray-conky-manager")
+        if gray_name != name:
+            lines.append(f'    ["{gray_name}"] = {{x = {int(widget.x)}, y = {int(widget.y)}}},')
     lines.append("}")
     lines.append("")
 
@@ -495,29 +499,52 @@ class LayoutEditor:
         running = self.get_running_themes()
         default_widgets = {
             "crypto-conky-manager": {"x": 45, "y": 543, "w": 250, "h": 250, "color": "#e94560"},
-            "crypto-gray-conky-manager": {"x": 315, "y": 543, "w": 250, "h": 250, "color": "#555555"},
             "kev-conky-manager": {"x": 1626, "y": 824, "w": 250, "h": 250, "color": "#ff4444"},
-            "kev-gray-conky-manager": {"x": 1626, "y": 554, "w": 250, "h": 250, "color": "#555555"},
             "infra-conky-manager": {"x": 45, "y": 808, "w": 250, "h": 250, "color": "#ff8800"},
-            "infra-gray-conky-manager": {"x": 315, "y": 808, "w": 250, "h": 250, "color": "#555555"},
             "bandwidth-conky-manager": {"x": 45, "y": 230, "w": 244, "h": 124, "color": "#4488ff"},
-            "bandwidth-gray-conky-manager": {"x": 315, "y": 230, "w": 244, "h": 124, "color": "#555555"},
             "network-conky-manager": {"x": 45, "y": 367, "w": 248, "h": 162, "color": "#44aaff"},
-            "network-gray-conky-manager": {"x": 315, "y": 367, "w": 248, "h": 162, "color": "#555555"},
             "processes-conky-manager": {"x": 1626, "y": 230, "w": 250, "h": 220, "color": "#ff88ff"},
-            "processes-gray-conky-manager": {"x": 1626, "y": 24, "w": 250, "h": 220, "color": "#555555"},
             "docker-conky-manager": {"x": 1626, "y": 466, "w": 250, "h": 180, "color": "#88ff88"},
-            "docker-gray-conky-manager": {"x": 1626, "y": 260, "w": 250, "h": 180, "color": "#555555"},
             "k8s-conky-manager": {"x": 1626, "y": 665, "w": 250, "h": 140, "color": "#ffff44"},
-            "k8s-gray-conky-manager": {"x": 1626, "y": 455, "w": 250, "h": 140, "color": "#555555"},
             "weather-conky-manager": {"x": 1694, "y": 69, "w": 114, "h": 110, "color": "#4488ff"},
             "calendar-conky-manager": {"x": 660, "y": 350, "w": 600, "h": 500, "color": "#44ff88"},
-            "calendar-gray-conky-manager": {"x": 660, "y": 870, "w": 600, "h": 500, "color": "#555555"},
             "revisited-conky-manager": {"x": 438, "y": 39, "w": 1044, "h": 92, "color": "#884488"},
-            "revisited-gray-conky-manager": {"x": 438, "y": 146, "w": 1044, "h": 92, "color": "#555555"},
         }
 
+        # Filter by enabled widgets from running theme
+        enabled_widgets = set(default_widgets.keys())
+        settings_file = None
+        for theme in ["all-widgets-conky-manager", "all-widgets-metro-conky-manager",
+                       "all-widgets-glass-conky-manager", "all-widgets-nordic-conky-manager",
+                       "all-widgets-gray-conky-manager"]:
+            if theme in running:
+                settings_file = Path.home() / f".config/conky/{theme}/settings.lua"
+                break
+
+        if settings_file and settings_file.exists():
+            content = settings_file.read_text()
+            flag_to_widgets = {
+                "enabled_network": "network-conky-manager",
+                "enabled_bandwidth": "bandwidth-conky-manager",
+                "enabled_processes": "processes-conky-manager",
+                "enabled_docker": "docker-conky-manager",
+                "enabled_k8s": "k8s-conky-manager",
+                "enabled_crypto": "crypto-conky-manager",
+                "enabled_kev": "kev-conky-manager",
+                "enabled_infra": "infra-conky-manager",
+                "enabled_weather": "weather-conky-manager",
+                "enabled_calendar": "calendar-conky-manager",
+                "enabled_revisited": "revisited-conky-manager",
+            }
+            enabled_widgets = set()
+            for flag, widget_name in flag_to_widgets.items():
+                match = re.search(rf'{flag}\s*=\s*(true|false)', content)
+                if match and match.group(1) == "true":
+                    enabled_widgets.add(widget_name)
+
         for name, defaults in default_widgets.items():
+            if name not in enabled_widgets:
+                continue
             pos = layout.get(name, defaults)
             mw, mh = MIN_WIDGET_SIZES.get(name, (100, 50))
             self.widgets[name] = WidgetRect(
@@ -799,6 +826,10 @@ class LayoutEditor:
         }
         for name, widget in self.widgets.items():
             layout[name] = widget.to_dict()
+            # Mirror to gray variant for backward compatibility
+            gray_name = name.replace("-conky-manager", "-gray-conky-manager")
+            if gray_name != name:
+                layout[gray_name] = widget.to_dict()
         save_layout(layout)
         save_positions(self.screen_w, self.screen_h, self.monitor, self.widgets)
         print(f"Layout saved to {LAYOUT_FILE}")
@@ -832,20 +863,12 @@ class LayoutEditor:
 
     def apply_positions(self):
         self.save()
-        conky_config = Path.home() / ".config" / "conky"
-        updated_themes = set()
-        for name, widget in self.widgets.items():
-            try:
-                theme_dir = conky_config / name
-                conkyrc = theme_dir / "conkyrc"
-                if conkyrc.exists():
-                    self.update_conkyrc_position(conkyrc, widget)
-                updated_themes.add(name)
-            except Exception as e:
-                print(f"Error updating {name}: {e}")
-
-        if updated_themes:
-            self.restart_themes(updated_themes)
+        # Only restart currently running themes
+        running = self.get_running_themes()
+        if running:
+            self.restart_themes(running)
+        else:
+            print("No themes running. Positions saved.")
 
     def update_conkyrc_position(self, conkyrc, widget):
         target = conkyrc.resolve()
@@ -880,10 +903,10 @@ class LayoutEditor:
 
     def restart_themes(self, theme_names):
         conky_config = Path.home() / ".config" / "conky"
-        # Unified theme: always restart all unified theme variants
-        unified_themes = ["all-widgets-conky-manager", "all-widgets-metro-conky-manager", "all-widgets-glass-conky-manager", "all-widgets-nordic-conky-manager", "all-widgets-gray-conky-manager"]
+        # Only restart the specified (running) themes
+        themes_to_restart = list(theme_names) if theme_names else []
         # Kill phase
-        for name in unified_themes:
+        for name in themes_to_restart:
             conkyrc = conky_config / name / "conkyrc"
             if not conkyrc.exists():
                 continue
@@ -901,7 +924,7 @@ class LayoutEditor:
                 print(f"Error killing {name}: {e}")
         time.sleep(0.5)
         # Restart phase
-        for name in unified_themes:
+        for name in themes_to_restart:
             conkyrc = conky_config / name / "conkyrc"
             if not conkyrc.exists():
                 continue
