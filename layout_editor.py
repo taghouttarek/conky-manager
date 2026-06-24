@@ -317,8 +317,11 @@ class LayoutEditor:
         self.height_entry.bind("<Return>", self._on_resolution_entry)
         self.height_entry.bind("<FocusOut>", self._on_resolution_entry)
 
-        # Apply built-in monitor now that width_var/height_var exist
-        self._apply_monitor(0)
+        # Apply built-in monitor defaults
+        if self.monitors:
+            self.monitor = self.monitors[0]["index"]
+        else:
+            self.monitor = 0
 
         # Canvas
         canvas_frame = ctk.CTkFrame(self.root)
