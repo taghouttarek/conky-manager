@@ -912,7 +912,7 @@ class ConkyManagerGUI:
         """Open the settings window for theme configuration"""
         settings_win = ctk.CTkToplevel(self.root)
         settings_win.title("Settings")
-        settings_win.geometry("400x420")
+        settings_win.geometry("420x580")
         settings_win.resizable(False, False)
 
         ctk.CTkLabel(settings_win, text="Theme Settings", font=('Helvetica', 14, 'bold')).pack(pady=(15, 10))
@@ -977,6 +977,45 @@ class ConkyManagerGUI:
                                        font=('Helvetica', 10))
         iface_combo.pack(anchor="w", padx=15, pady=(0, 10))
 
+        # Widget visibility settings (unified theme)
+        widget_file = Path.home() / ".config/conky/all-widgets-conky-manager/settings.lua"
+        if not widget_file.exists():
+            widget_file = Path.home() / ".config/conky/all-widgets-gray-conky-manager/settings.lua"
+        widget_defaults = {
+            "enabled_network": True, "enabled_bandwidth": True, "enabled_processes": True,
+            "enabled_docker": True, "enabled_k8s": True, "enabled_crypto": True,
+            "enabled_kev": True, "enabled_infra": True, "enabled_weather": True,
+            "enabled_calendar": True, "enabled_revisited": True,
+        }
+        if widget_file.exists():
+            content = widget_file.read_text()
+            for key in widget_defaults:
+                match = re.search(rf'{key}\s*=\s*(true|false)', content)
+                if match:
+                    widget_defaults[key] = match.group(1) == "true"
+
+        widget_vars = {}
+        ctk.CTkLabel(settings_win, text="Widget Visibility", font=('Helvetica', 12, 'bold')).pack(anchor="w", padx=15, pady=(10, 5))
+
+        # Create a scrollable frame for widgets if needed (or just use grid)
+        widgets_grid = ctk.CTkFrame(settings_win, fg_color="transparent")
+        widgets_grid.pack(fill="x", padx=15, pady=(0, 5))
+        widgets = [
+            ("Network", "enabled_network"), ("Bandwidth", "enabled_bandwidth"),
+            ("Processes", "enabled_processes"), ("Docker", "enabled_docker"),
+            ("K8s", "enabled_k8s"), ("Crypto", "enabled_crypto"),
+            ("KEV", "enabled_kev"), ("Infra", "enabled_infra"),
+            ("Weather", "enabled_weather"), ("Calendar", "enabled_calendar"),
+            ("Revisited", "enabled_revisited"),
+        ]
+        for i, (label, key) in enumerate(widgets):
+            var = tk.BooleanVar(value=widget_defaults[key])
+            widget_vars[key] = var
+            switch = ctk.CTkSwitch(widgets_grid, text=label, variable=var, onvalue=True, offvalue=False,
+                                   width=80, height=20, font=('Helvetica', 9), corner_radius=0,
+                                   switch_width=36, switch_height=18)
+            switch.grid(row=i//3, column=i%3, sticky="w", padx=2, pady=2)
+
         def save_settings():
             # Save weather settings (to both unified theme variants)
             for wf in [Path.home() / ".config/conky/all-widgets-conky-manager/settings.lua",
@@ -994,6 +1033,16 @@ class ConkyManagerGUI:
                     content = bf.read_text()
                     content = re.sub(r'(iface\s*=\s*")[^"]*"', rf'\g<1>{iface_var.get()}"', content)
                     bf.write_text(content)
+            # Save widget visibility (to both unified theme variants)
+            for wf in [Path.home() / ".config/conky/all-widgets-conky-manager/settings.lua",
+                       Path.home() / ".config/conky/all-widgets-gray-conky-manager/settings.lua"]:
+                if wf.exists():
+                    content = wf.read_text()
+                    for key, var in widget_vars.items():
+                        val = "true" if var.get() else "false"
+                        content = re.sub(rf'({key}\s*=\s*)true', rf'\g<1>{val}', content)
+                        content = re.sub(rf'({key}\s*=\s*)false', rf'\g<1>{val}', content)
+                    wf.write_text(content)
             messagebox.showinfo("Settings", "Settings saved. Restart themes to apply.")
             settings_win.destroy()
 
@@ -1164,34 +1213,49 @@ class ConkyManagerGUI:
                     themes_dir = repo_path / "themes"
                     if themes_dir.exists():
                         # User-configurable keys to preserve per theme
-                        preserve_keys = {
+                        preserve_string_keys = {
                             "all-widgets-conky-manager": ["api_key", "city", "country_code", "iface", "coin_id", "currency", "coin_symbol", "chart_days"],
                             "all-widgets-gray-conky-manager": ["api_key", "city", "country_code", "iface", "coin_id", "currency", "coin_symbol", "chart_days"],
+                        }
+                        preserve_bool_keys = {
+                            "all-widgets-conky-manager": ["enabled_network", "enabled_bandwidth", "enabled_processes", "enabled_docker", "enabled_k8s", "enabled_crypto", "enabled_kev", "enabled_infra", "enabled_weather", "enabled_calendar", "enabled_revisited"],
+                            "all-widgets-gray-conky-manager": ["enabled_network", "enabled_bandwidth", "enabled_processes", "enabled_docker", "enabled_k8s", "enabled_crypto", "enabled_kev", "enabled_infra", "enabled_weather", "enabled_calendar", "enabled_revisited"],
                         }
                         for theme_dir in themes_dir.iterdir():
                             if theme_dir.is_dir() and theme_dir.name.endswith("-conky-manager"):
                                 dst = conky_config / theme_dir.name
                                 # Extract user config values from existing settings.lua
-                                user_config = {}
+                                string_config = {}
+                                bool_config = {}
                                 sf = dst / "settings.lua" if dst.exists() else None
                                 if sf and sf.exists():
                                     old_content = sf.read_text()
-                                    for key in preserve_keys.get(theme_dir.name, []):
+                                    for key in preserve_string_keys.get(theme_dir.name, []):
                                         match = re.search(rf'{key}\s*=\s*"([^"]*)"', old_content)
                                         if match:
-                                            user_config[key] = match.group(1)
+                                            string_config[key] = match.group(1)
+                                    for key in preserve_bool_keys.get(theme_dir.name, []):
+                                        match = re.search(rf'{key}\s*=\s*(true|false)', old_content)
+                                        if match:
+                                            bool_config[key] = match.group(1)
                                 # Replace theme directory
                                 if dst.exists():
                                     shutil.rmtree(str(dst))
                                 shutil.copytree(str(theme_dir), str(dst))
                                 # Re-apply user config values to the new settings.lua
                                 new_sf = dst / "settings.lua"
-                                if new_sf.exists() and user_config:
+                                if new_sf.exists():
                                     new_content = new_sf.read_text()
-                                    for key, val in user_config.items():
+                                    for key, val in string_config.items():
                                         new_content = re.sub(
                                             rf'({key}\s*=\s*")[^"]*"',
                                             rf'\g<1>{val}"',
+                                            new_content
+                                        )
+                                    for key, val in bool_config.items():
+                                        new_content = re.sub(
+                                            rf'({key}\s*=\s*)(true|false)',
+                                            rf'\g<1>{val}',
                                             new_content
                                         )
                                     new_sf.write_text(new_content)

@@ -44,6 +44,19 @@ gap_x_distance = 10
 -- ###Calendar settings###
 number_of_physical_CPU_cores = 16
 
+-- ###Widget visibility (true = enabled, false = disabled)###
+enabled_network = true
+enabled_bandwidth = true
+enabled_processes = true
+enabled_docker = true
+enabled_k8s = true
+enabled_crypto = true
+enabled_kev = true
+enabled_infra = true
+enabled_weather = true
+enabled_calendar = true
+enabled_revisited = true
+
 -- ###Dont change code below###
 require 'cairo'
 pcall(require, 'cairo_xlib')
@@ -1117,59 +1130,81 @@ function draw_function(cr)
     cairo_select_font_face(cr, "DejaVu Sans Book", CAIRO_FONT_SLANT_NORMAL, CAIRO_FONT_WEIGHT_NORMAL)
 
     -- Network
-    local nx = positions["network-conky-manager"].x
-    local ny = positions["network-conky-manager"].y
-    draw_network_info(cr, nx, ny)
+    if enabled_network then
+        local nx = positions["network-conky-manager"].x
+        local ny = positions["network-conky-manager"].y
+        draw_network_info(cr, nx, ny)
+    end
 
     -- Bandwidth
-    local bx = positions["bandwidth-conky-manager"].x
-    local by = positions["bandwidth-conky-manager"].y
-    draw_network_bandwidth(cr, bx, by)
+    if enabled_bandwidth then
+        local bx = positions["bandwidth-conky-manager"].x
+        local by = positions["bandwidth-conky-manager"].y
+        draw_network_bandwidth(cr, bx, by)
+    end
 
     -- Processes
-    local px = positions["processes-conky-manager"].x
-    local py = positions["processes-conky-manager"].y
-    draw_top_processes(cr, px, py)
+    if enabled_processes then
+        local px = positions["processes-conky-manager"].x
+        local py = positions["processes-conky-manager"].y
+        draw_top_processes(cr, px, py)
+    end
 
     -- Docker
-    local dx = positions["docker-conky-manager"].x
-    local dy = positions["docker-conky-manager"].y
-    draw_docker_containers(cr, dx, dy)
+    if enabled_docker then
+        local dx = positions["docker-conky-manager"].x
+        local dy = positions["docker-conky-manager"].y
+        draw_docker_containers(cr, dx, dy)
+    end
 
     -- K8S
-    local kx = positions["k8s-conky-manager"].x
-    local ky = positions["k8s-conky-manager"].y
-    draw_k8s_context(cr, kx, ky)
+    if enabled_k8s then
+        local kx = positions["k8s-conky-manager"].x
+        local ky = positions["k8s-conky-manager"].y
+        draw_k8s_context(cr, kx, ky)
+    end
 
     -- Crypto
-    local cx = positions["crypto-conky-manager"].x
-    local cy = positions["crypto-conky-manager"].y
-    draw_crypto_widget(cr, cx, cy)
+    if enabled_crypto then
+        local cx = positions["crypto-conky-manager"].x
+        local cy = positions["crypto-conky-manager"].y
+        draw_crypto_widget(cr, cx, cy)
+    end
 
     -- KEV
-    local kx2 = positions["kev-conky-manager"].x
-    local ky2 = positions["kev-conky-manager"].y
-    draw_vuln_widget(cr, kx2, ky2, "KEV", os.getenv("HOME") .. "/.config/conky/all-widgets-conky-manager/fetch_vulns.py", r_crit_kev, g_crit_kev, b_crit_kev)
+    if enabled_kev then
+        local kx2 = positions["kev-conky-manager"].x
+        local ky2 = positions["kev-conky-manager"].y
+        draw_vuln_widget(cr, kx2, ky2, "KEV", os.getenv("HOME") .. "/.config/conky/all-widgets-conky-manager/fetch_vulns.py", r_crit_kev, g_crit_kev, b_crit_kev)
+    end
 
     -- Infra
-    local ix = positions["infra-conky-manager"].x
-    local iy = positions["infra-conky-manager"].y
-    draw_vuln_widget(cr, ix, iy, "INFRA", os.getenv("HOME") .. "/.config/conky/all-widgets-conky-manager/fetch_infra_vulns.py", r_crit_infra, g_crit_infra, b_crit_infra)
+    if enabled_infra then
+        local ix = positions["infra-conky-manager"].x
+        local iy = positions["infra-conky-manager"].y
+        draw_vuln_widget(cr, ix, iy, "INFRA", os.getenv("HOME") .. "/.config/conky/all-widgets-conky-manager/fetch_infra_vulns.py", r_crit_infra, g_crit_infra, b_crit_infra)
+    end
 
     -- Weather
-    local wx = positions["weather-conky-manager"].x
-    local wy = positions["weather-conky-manager"].y
-    draw_weather_widget(cr, wx, wy)
+    if enabled_weather then
+        local wx = positions["weather-conky-manager"].x
+        local wy = positions["weather-conky-manager"].y
+        draw_weather_widget(cr, wx, wy)
+    end
 
     -- Calendar
-    local calx = positions["calendar-conky-manager"].x
-    local caly = positions["calendar-conky-manager"].y
-    draw_calendar_widget(cr, calx, caly)
+    if enabled_calendar then
+        local calx = positions["calendar-conky-manager"].x
+        local caly = positions["calendar-conky-manager"].y
+        draw_calendar_widget(cr, calx, caly)
+    end
 
     -- Revisited
-    local rx = positions["revisited-conky-manager"].x
-    local ry = positions["revisited-conky-manager"].y
-    draw_revisited_widget(cr, rx, ry)
+    if enabled_revisited then
+        local rx = positions["revisited-conky-manager"].x
+        local ry = positions["revisited-conky-manager"].y
+        draw_revisited_widget(cr, rx, ry)
+    end
 end
 
 function conky_start_widgets()
