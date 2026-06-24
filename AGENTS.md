@@ -39,10 +39,17 @@ Any fix, modification, or new theme applied to the system MUST be committed back
 ```
 themes/<theme-name>/
 ├── conkyrc              # Config (loads positions.lua + settings.lua)
-├── settings.lua         # Lua settings and drawing code
-├── *.lua                # Additional Lua scripts
+├── settings.lua         # Lua settings and drawing code (all widgets merged)
 ├── PNG/                 # Image assets (if any)
 ```
+
+### Unified Theme (v3.0)
+All widgets run in a single conky instance:
+- `themes/all-widgets-conky-manager/` — white theme (all 11 widgets)
+- `themes/all-widgets-gray-conky-manager/` — gray theme (#232323 backgrounds)
+- Single `settings.lua` with all widget drawing code (~1200 lines)
+- Layout editor still manages individual widget positions by name
+- `positions.lua` contains entries for each widget (network, bandwidth, etc.)
 
 ### Shared Positioning System
 - `~/.config/conky/positions.lua` — shared position config for all themes
@@ -179,6 +186,16 @@ conky.text = [[
 - Added gray entries to `positions.lua` and `layout.json`
 - Settings window reads/writes both regular and gray variants
 - Update mechanism preserves gray theme config values
+
+### Unified Widget Theme (v3.0)
+- All 11 widgets merged into single `settings.lua` per theme (~1200 lines)
+- Two themes: `all-widgets-conky-manager` (white) + `all-widgets-gray-conky-manager` (gray)
+- Single conky process per theme (replaces 22+ individual processes)
+- Layout editor continues managing individual widget positions by name
+- `positions.lua` unchanged — each widget reads its own position entry
+- `restart_themes()` always restarts unified themes (ignores individual widget names)
+- Settings window reads/writes unified settings.lua for weather/bandwidth/crypto
+- `preserve_keys` updated for unified theme names
 
 ## Adding New Themes
 

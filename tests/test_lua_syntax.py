@@ -130,10 +130,10 @@ class TestLuaCorrectness:
                 )
                 if match:
                     body = match.group(1)
-                    # Should have local x or local widget_x
-                    assert "local x =" in body or "local widget_x =" in body, \
+                    # Should have local variables for positions (nx, bx, cx, etc. or x, widget_x)
+                    assert re.search(r'local \w+x\b', body) or "local widget_x" in body or "local x =" in body, \
                         f"{lua_file.name}: draw_function x not declared local"
-                    assert "local y =" in body or "local widget_y =" in body, \
+                    assert re.search(r'local \w+y\b', body) or "local widget_y" in body or "local y =" in body, \
                         f"{lua_file.name}: draw_function y not declared local"
 
 

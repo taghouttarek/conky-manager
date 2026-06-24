@@ -880,8 +880,10 @@ class LayoutEditor:
 
     def restart_themes(self, theme_names):
         conky_config = Path.home() / ".config" / "conky"
+        # Unified theme: always restart all-widgets-conky-manager (and gray variant)
+        unified_themes = ["all-widgets-conky-manager", "all-widgets-gray-conky-manager"]
         # Kill phase
-        for name in theme_names:
+        for name in unified_themes:
             conkyrc = conky_config / name / "conkyrc"
             if not conkyrc.exists():
                 continue
@@ -899,7 +901,7 @@ class LayoutEditor:
                 print(f"Error killing {name}: {e}")
         time.sleep(0.5)
         # Restart phase
-        for name in theme_names:
+        for name in unified_themes:
             conkyrc = conky_config / name / "conkyrc"
             if not conkyrc.exists():
                 continue

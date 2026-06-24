@@ -270,7 +270,7 @@ class TestMonitorIndex:
         editor = LayoutEditor.__new__(LayoutEditor)
         editor.monitor = 1
         conky_config = tmp_path / ".config" / "conky"
-        theme_dir = conky_config / "test-theme"
+        theme_dir = conky_config / "all-widgets-conky-manager"
         theme_dir.mkdir(parents=True)
         conkyrc = theme_dir / "conkyrc"
         conkyrc.write_text("test")
@@ -280,7 +280,7 @@ class TestMonitorIndex:
             with patch("layout_editor.subprocess.Popen") as mock_popen:
                 mock_popen.return_value = MagicMock()
                 with patch.object(layout_editor.Path, 'home', return_value=tmp_path):
-                    editor.restart_themes(["test-theme"])
+                    editor.restart_themes(["any-widget"])
                 call_args = mock_popen.call_args[0][0]
                 assert "-m" in call_args
                 assert call_args[call_args.index("-m") + 1] == "1"

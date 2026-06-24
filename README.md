@@ -37,31 +37,28 @@ A full-featured Python/CustomTkinter GUI for managing Conky themes on Linux.
 
 ## Included Themes
 
-### System Widgets
+All widgets run in a single conky instance per theme:
+
+### Unified Themes (v3.0)
 | Theme | Description |
 |-------|-------------|
-| `network-conky-manager` | Network info (interface, local/external IP) |
-| `bandwidth-conky-manager` | Download/upload speed |
-| `processes-conky-manager` | Top 10 processes by CPU |
-| `docker-conky-manager` | Running Docker containers |
-| `k8s-conky-manager` | Kubernetes context, namespace, nodes |
+| `all-widgets-conky-manager` | All 11 widgets in one theme (white, semi-transparent backgrounds) |
+| `all-widgets-gray-conky-manager` | All 11 widgets in one theme (solid dark gray #232323 backgrounds) |
 
-### Monitoring
-| Theme | Description |
-|-------|-------------|
-| `crypto-conky-manager` | Cryptocurrency prices with 7-day chart (configurable coin) |
-| `kev-conky-manager` | CISA Known Exploited Vulnerabilities with flashing dot for recent entries |
-| `infra-conky-manager` | Infrastructure CVEs with flashing dot for recent entries |
-| `weather-conky-manager` | Weather display with OpenWeatherMap API (configurable city) |
-
-### Desktop Widgets
-| Theme | Description |
-|-------|-------------|
-| `calendar-conky-manager` | Calendar with circular design |
-| `revisited-conky-manager` | Revisited desktop widgets (circle/square, horizontal/vertical) |
-
-### Gray Variants
-All themes (except weather, which already has a dark background) have `*-gray-conky-manager` variants with solid dark gray (#232323) backgrounds and white text/icons, matching the weather widget style.
+### Widgets Included
+| Widget | Description |
+|--------|-------------|
+| Network | Interface, local/external IP |
+| Bandwidth | Download/upload speed |
+| Processes | Top 10 processes by CPU |
+| Docker | Running Docker containers |
+| K8s | Kubernetes context, namespace, nodes |
+| Crypto | Cryptocurrency prices with 7-day chart (configurable coin) |
+| KEV | CISA Known Exploited Vulnerabilities with flashing dot |
+| Infra | Infrastructure CVEs with flashing dot |
+| Weather | Weather display with OpenWeatherMap API (configurable city) |
+| Calendar | Calendar with circular design, clock, music player |
+| Revisited | Desktop widgets (battery, disk, CPU, RAM) |
 
 ## Installation
 
@@ -69,7 +66,7 @@ All themes (except weather, which already has a dark background) have `*-gray-co
 
 ```bash
 # Download and install
-sudo dpkg -i conky-manager_2.2.9_all.deb
+sudo dpkg -i conky-manager_3.0.0_all.deb
 sudo apt install -f  # Fix dependencies if needed
 ```
 

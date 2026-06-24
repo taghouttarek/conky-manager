@@ -41,7 +41,7 @@ AUTOSTART_DIR = HOME / ".config" / "autostart"
 DATA_DIR = HOME / ".local" / "share" / "conky-manager"
 SETTINGS_FILE = DATA_DIR / "settings.json"
 LOG_FILE = DATA_DIR / "manager.log"
-VERSION = "2.2.9"
+VERSION = "3.0.0"
 REPO_URL = "https://github.com/taghouti-org/conky-manager.git"
 
 # Supported archive extensions
@@ -917,10 +917,10 @@ class ConkyManagerGUI:
 
         ctk.CTkLabel(settings_win, text="Theme Settings", font=('Helvetica', 14, 'bold')).pack(pady=(15, 10))
 
-        # Weather settings (check both regular and gray variants)
-        weather_file = Path.home() / ".config/conky/weather-conky-manager/settings.lua"
+        # Weather settings (unified theme)
+        weather_file = Path.home() / ".config/conky/all-widgets-conky-manager/settings.lua"
         if not weather_file.exists():
-            weather_file = Path.home() / ".config/conky/weather-gray-conky-manager/settings.lua"
+            weather_file = Path.home() / ".config/conky/all-widgets-gray-conky-manager/settings.lua"
         weather_defaults = {"api_key": "", "city": "", "country_code": ""}
         if weather_file.exists():
             content = weather_file.read_text()
@@ -943,10 +943,10 @@ class ConkyManagerGUI:
         country_var = tk.StringVar(value=weather_defaults["country_code"])
         ctk.CTkEntry(settings_win, textvariable=country_var, width=100, font=('Helvetica', 10)).pack(anchor="w", padx=15, pady=(0, 10))
 
-        # Bandwidth settings (check both regular and gray variants)
-        bw_file = Path.home() / ".config/conky/bandwidth-conky-manager/settings.lua"
+        # Bandwidth settings (unified theme)
+        bw_file = Path.home() / ".config/conky/all-widgets-conky-manager/settings.lua"
         if not bw_file.exists():
-            bw_file = Path.home() / ".config/conky/bandwidth-gray-conky-manager/settings.lua"
+            bw_file = Path.home() / ".config/conky/all-widgets-gray-conky-manager/settings.lua"
         bw_iface = "auto"
         if bw_file.exists():
             content = bw_file.read_text()
@@ -978,21 +978,23 @@ class ConkyManagerGUI:
         iface_combo.pack(anchor="w", padx=15, pady=(0, 10))
 
         def save_settings():
-            # Save weather settings (to both regular and gray variants)
-            for wf in [weather_file, Path.home() / ".config/conky/weather-gray-conky-manager/settings.lua"]:
+            # Save weather settings (to both unified theme variants)
+            for wf in [Path.home() / ".config/conky/all-widgets-conky-manager/settings.lua",
+                       Path.home() / ".config/conky/all-widgets-gray-conky-manager/settings.lua"]:
                 if wf.exists():
                     content = wf.read_text()
                     content = re.sub(r'(api_key\s*=\s*")[^"]*"', rf'\g<1>{api_key_var.get()}"', content)
                     content = re.sub(r'(city\s*=\s*")[^"]*"', rf'\g<1>{city_var.get()}"', content)
                     content = re.sub(r'(country_code\s*=\s*")[^"]*"', rf'\g<1>{country_var.get()}"', content)
                     wf.write_text(content)
-            # Save bandwidth settings (to both regular and gray variants)
-            for bf in [bw_file, Path.home() / ".config/conky/bandwidth-gray-conky-manager/settings.lua"]:
+            # Save bandwidth settings (to both unified theme variants)
+            for bf in [Path.home() / ".config/conky/all-widgets-conky-manager/settings.lua",
+                       Path.home() / ".config/conky/all-widgets-gray-conky-manager/settings.lua"]:
                 if bf.exists():
                     content = bf.read_text()
                     content = re.sub(r'(iface\s*=\s*")[^"]*"', rf'\g<1>{iface_var.get()}"', content)
                     bf.write_text(content)
-            messagebox.showinfo("Settings", "Settings saved. Restart affected themes to apply.")
+            messagebox.showinfo("Settings", "Settings saved. Restart themes to apply.")
             settings_win.destroy()
 
         ctk.CTkButton(settings_win, text="Save", command=save_settings, width=100, height=28,
@@ -1163,12 +1165,8 @@ class ConkyManagerGUI:
                     if themes_dir.exists():
                         # User-configurable keys to preserve per theme
                         preserve_keys = {
-                            "weather-conky-manager": ["api_key", "city", "country_code"],
-                            "weather-gray-conky-manager": ["api_key", "city", "country_code"],
-                            "bandwidth-conky-manager": ["iface"],
-                            "bandwidth-gray-conky-manager": ["iface"],
-                            "crypto-conky-manager": ["coin_id", "currency", "coin_symbol", "chart_days"],
-                            "crypto-gray-conky-manager": ["coin_id", "currency", "coin_symbol", "chart_days"],
+                            "all-widgets-conky-manager": ["api_key", "city", "country_code", "iface", "coin_id", "currency", "coin_symbol", "chart_days"],
+                            "all-widgets-gray-conky-manager": ["api_key", "city", "country_code", "iface", "coin_id", "currency", "coin_symbol", "chart_days"],
                         }
                         for theme_dir in themes_dir.iterdir():
                             if theme_dir.is_dir() and theme_dir.name.endswith("-conky-manager"):
