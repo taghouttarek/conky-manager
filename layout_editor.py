@@ -853,6 +853,7 @@ class LayoutEditor:
 
     def apply_positions(self):
         self.save()
+        print(f"[DEBUG] apply_positions: monitor={self.monitor}, screen={self.screen_w}x{self.screen_h}")
         # Only restart currently running themes
         running = self.get_running_themes()
         if running:
@@ -913,19 +914,58 @@ class LayoutEditor:
             except Exception as e:
                 print(f"Error killing {name}: {e}")
         time.sleep(0.5)
+
+        # For built-in screen: use gap_x/gap_y offset instead of -m
+        # because Xinerama may not expose eDP-1
+        builtin_offset = self._get_builtin_offset()
+        use_gap = builtin_offset is not None and self.monitor == 0 and self.monitor_var.get() == self.builtin_label
+
         # Restart phase
         for name in themes_to_restart:
             conkyrc = conky_config / name / "conkyrc"
             if not conkyrc.exists():
                 continue
             try:
+                if use_gap:
+                    # Create temporary conkyrc with gap offset for built-in screen
+                    import tempfile
+                    with open(conkyrc, 'r') as f:
+                        content = f.read()
+                    content = re.sub(r'(gap_x\s*=\s*)\d+', rf'\g<1>{builtin_offset[0]}', content)
+                    content = re.sub(r'(gap_y\s*=\s*)\d+', rf'\g<1>{builtin_offset[1]}', content)
+                    fd, tmp_conkyrc = tempfile.mkstemp(suffix='.conf', dir=conky_config)
+                    with os.fdopen(fd, 'w') as f:
+                        f.write(content)
+                    cmd = ['conky', '-c', tmp_conkyrc, '-d']
+                    print(f"[DEBUG] starting conky (built-in via gap): {' '.join(cmd)}")
+                else:
+                    cmd = ['conky', '-c', str(conkyrc), '-d', '-m', str(self.monitor)]
+                    print(f"[DEBUG] starting conky: {' '.join(cmd)}")
                 subprocess.Popen(
-                    ['conky', '-c', str(conkyrc), '-d', '-m', str(self.monitor)],
+                    cmd,
                     stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL
                 )
                 print(f"Restarted {name} on monitor {self.monitor}")
             except Exception as e:
                 print(f"Failed to restart {name}: {e}")
+
+    def _get_builtin_offset(self):
+        """Detect built-in screen position offset in virtual screen."""
+        try:
+            result = subprocess.run(
+                ['xrandr', '--listmonitors'], capture_output=True, text=True, timeout=5
+            )
+            for line in result.stdout.splitlines():
+                if 'eDP' in line or 'LVDS' in line or 'DSI' in line:
+                    parts = line.strip().split()
+                    geom = parts[2]
+                    # Format: 1920x1200+0+529
+                    offset = geom.split('+')
+                    if len(offset) == 3:
+                        return int(offset[1]), int(offset[2])
+        except Exception:
+            pass
+        return None
 
 
 if __name__ == "__main__":
