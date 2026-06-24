@@ -41,7 +41,7 @@ AUTOSTART_DIR = HOME / ".config" / "autostart"
 DATA_DIR = HOME / ".local" / "share" / "conky-manager"
 SETTINGS_FILE = DATA_DIR / "settings.json"
 LOG_FILE = DATA_DIR / "manager.log"
-VERSION = "2.2.8"
+VERSION = "2.2.9"
 REPO_URL = "https://github.com/taghouti-org/conky-manager.git"
 
 # Supported archive extensions

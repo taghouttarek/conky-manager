@@ -69,7 +69,7 @@ All themes (except weather, which already has a dark background) have `*-gray-co
 
 ```bash
 # Download and install
-sudo dpkg -i conky-manager_2.2.8_all.deb
+sudo dpkg -i conky-manager_2.2.9_all.deb
 sudo apt install -f  # Fix dependencies if needed
 ```
 

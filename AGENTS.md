@@ -151,6 +151,10 @@ conky.text = [[
 - Clear button to reset filter
 - Filter persists across auto-refresh cycles
 
+### Multi-Select Drag Fix (v2.2.9)
+- Fixed multi-select drag: all selected widgets move together
+- Fixed screen edge clamping: widgets stop together at bounds, no overlap
+
 ### Layout Editor Features (v2.0.6)
 - Fullscreen on open (attributes('-zoomed', True))
 - Monitor detection and selection via `xrandr --listmonitors`
