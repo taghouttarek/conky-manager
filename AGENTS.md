@@ -209,6 +209,20 @@ conky.text = [[
 - Toggles apply to both white and gray unified themes
 - Update mechanism preserves enabled_* boolean values during theme updates
 
+### Theme Variants (v4.0.0)
+- **Metro**: Multi-color flat tiles, sharp corners, bold widget-specific colors
+- **Glass**: Solid dark panels, bright accent borders, CAIRO_OPERATOR_OVER for text
+- **Nordic**: Nord color palette (#2e3440 bg, #88c0d0 frost border, #eceff4 snow text)
+- All variants use same position keys (no variant suffix)
+- Unified widget width: 250px for network, bandwidth, processes, docker, k8s, crypto, kev, infra
+
+### Layout Editor Fixes (v4.0.0)
+- Shows 11 widgets only (no duplicated gray variants)
+- Resize feature removed (widget sizes fixed to match Lua definitions)
+- Save always writes correct default sizes (ignores user resizing)
+- Apply only restarts currently running themes
+- Positions mirrored to gray variants in positions.lua and layout.json
+
 ## Adding New Themes
 
 1. Create `themes/<name>-conky-manager/` directory (MUST use `-conky-manager` suffix)
