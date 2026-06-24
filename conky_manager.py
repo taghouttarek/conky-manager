@@ -41,7 +41,7 @@ AUTOSTART_DIR = HOME / ".config" / "autostart"
 DATA_DIR = HOME / ".local" / "share" / "conky-manager"
 SETTINGS_FILE = DATA_DIR / "settings.json"
 LOG_FILE = DATA_DIR / "manager.log"
-VERSION = "2.2.7"
+VERSION = "2.2.8"
 REPO_URL = "https://github.com/taghouti-org/conky-manager.git"
 
 # Supported archive extensions
@@ -559,6 +559,19 @@ class ConkyManagerGUI:
         self.update_btn.pack(side="right", padx=2)
         ctk.CTkButton(toolbar_frame, text="Restart Manager", command=self.restart_manager, width=130, height=20, border_spacing=0, corner_radius=0, font=('Helvetica', 10)).pack(side="right", padx=2)
 
+        # Search bar
+        search_frame = ctk.CTkFrame(main_frame, fg_color="transparent")
+        search_frame.pack(fill="x", pady=(0, 5))
+
+        ctk.CTkLabel(search_frame, text="Search:", font=('Helvetica', 10)).pack(side="left", padx=(0, 5))
+        self.search_var = tk.StringVar()
+        self.search_var.trace_add("write", lambda *_: self.filter_themes())
+        search_entry = ctk.CTkEntry(search_frame, textvariable=self.search_var, width=250, height=20,
+                                     placeholder_text="Filter themes...", corner_radius=0, font=('Helvetica', 10))
+        search_entry.pack(side="left", padx=2)
+        ctk.CTkButton(search_frame, text="Clear", command=lambda: self.search_var.set(""),
+                      width=50, height=20, border_spacing=0, corner_radius=0, font=('Helvetica', 10)).pack(side="left", padx=2)
+
         # Theme list
         list_frame = ctk.CTkFrame(main_frame)
         list_frame.pack(fill="both", expand=True, pady=(0, 5))
@@ -690,6 +703,8 @@ class ConkyManagerGUI:
                 self.restart_theme_btn.configure(state="normal" if is_running else "disabled")
                 self.autostart_var.set(self.manager.is_autostart(self.selected_theme))
 
+        self.filter_themes()
+
     def on_theme_select(self, event):
         """Handle theme selection"""
         selection = self.tree.selection()
@@ -733,6 +748,16 @@ class ConkyManagerGUI:
 
         self.info_text.insert("end", info)
         self.info_text.configure(state="disabled")
+
+    def filter_themes(self):
+        """Filter theme list based on search text"""
+        query = self.search_var.get().strip().lower()
+        for item in self.tree.get_children():
+            name = self.tree.item(item)['values'][0]
+            if not query or query in name.lower():
+                self.tree.reattach(item, '', 'end')
+            else:
+                self.tree.detach(item)
 
     def get_selected_themes(self):
         """Get all selected themes"""

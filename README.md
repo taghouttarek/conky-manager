@@ -21,6 +21,7 @@ A full-featured Python/CustomTkinter GUI for managing Conky themes on Linux.
 - **Multi-Select** - Select and operate on multiple themes at once (Ctrl+Click / Shift+Click)
 - **Run/Stop/Restart** - Start, stop, or restart selected themes
 - **Restart All** - Restart all running themes at once
+- **Search** - Filter themes in real-time by typing in the search bar
 - **Archive Import** - Import themes from zip, tar, tar.gz, tar.xz, 7z
 - **Folder Import** - Import themes directly from local folders
 - **Autostart** - Configure themes to start on login via `.desktop` entries
@@ -32,6 +33,7 @@ A full-featured Python/CustomTkinter GUI for managing Conky themes on Linux.
 - **Dark Mode** - Modern dark UI with blue accent theme via CustomTkinter
 - **Wayland Support** - Full compatibility with Wayland (cairo_xlib optional via pcall)
 - **Gray Theme Variants** - Solid dark gray backgrounds (#232323) for all themes, matching weather widget style
+- **Theme Search** - Real-time case-insensitive search bar to filter themes by name
 
 ## Included Themes
 
@@ -67,7 +69,7 @@ All themes (except weather, which already has a dark background) have `*-gray-co
 
 ```bash
 # Download and install
-sudo dpkg -i conky-manager_2.2.7_all.deb
+sudo dpkg -i conky-manager_2.2.8_all.deb
 sudo apt install -f  # Fix dependencies if needed
 ```
 

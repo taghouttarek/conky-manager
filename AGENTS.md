@@ -145,6 +145,12 @@ conky.text = [[
 - Added `pcall` error handling with logging to `error.log`
 - Reduced `update_interval` from 15 to 3 for faster restart visibility
 
+### Theme Search (v2.2.8)
+- Added search bar between toolbar and theme list
+- Real-time case-insensitive filtering by theme name
+- Clear button to reset filter
+- Filter persists across auto-refresh cycles
+
 ### Layout Editor Features (v2.0.6)
 - Fullscreen on open (attributes('-zoomed', True))
 - Monitor detection and selection via `xrandr --listmonitors`
