@@ -291,7 +291,7 @@ class LayoutEditor:
         self.monitor_combo.pack(side="left", padx=2)
         # Set initial selection to built-in
         self.monitor_combo.set(self.builtin_label)
-        self._apply_monitor(0)
+        self.monitor = 0
 
         # Resolution preset dropdown
         self.resolution_var = tk.StringVar(value=self._current_preset())
@@ -316,6 +316,9 @@ class LayoutEditor:
         self.height_entry.pack(side="left", padx=2)
         self.height_entry.bind("<Return>", self._on_resolution_entry)
         self.height_entry.bind("<FocusOut>", self._on_resolution_entry)
+
+        # Apply built-in monitor now that width_var/height_var exist
+        self._apply_monitor(0)
 
         # Canvas
         canvas_frame = ctk.CTkFrame(self.root)
