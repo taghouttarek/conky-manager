@@ -810,16 +810,31 @@ class LayoutEditor:
             )
 
     def save(self):
+        # Default widget sizes (must match Lua widget dimensions)
+        default_sizes = {
+            "crypto-conky-manager": (250, 250),
+            "kev-conky-manager": (250, 250),
+            "infra-conky-manager": (250, 250),
+            "bandwidth-conky-manager": (220, 120),
+            "network-conky-manager": (220, 160),
+            "processes-conky-manager": (250, 220),
+            "docker-conky-manager": (250, 180),
+            "k8s-conky-manager": (250, 140),
+            "weather-conky-manager": (120, 120),
+            "calendar-conky-manager": (600, 500),
+            "revisited-conky-manager": (1044, 92),
+        }
         layout = {
             "resolution": {"w": self.screen_w, "h": self.screen_h},
             "monitor": self.monitor,
         }
         for name, widget in self.widgets.items():
-            layout[name] = widget.to_dict()
+            dw, dh = default_sizes.get(name, (widget.w, widget.h))
+            layout[name] = {"x": int(widget.x), "y": int(widget.y), "w": dw, "h": dh}
             # Mirror to gray variant for backward compatibility
             gray_name = name.replace("-conky-manager", "-gray-conky-manager")
             if gray_name != name:
-                layout[gray_name] = widget.to_dict()
+                layout[gray_name] = {"x": int(widget.x), "y": int(widget.y), "w": dw, "h": dh}
         save_layout(layout)
         save_positions(self.screen_w, self.screen_h, self.monitor, self.widgets)
         print(f"Layout saved to {LAYOUT_FILE}")
