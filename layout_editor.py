@@ -281,16 +281,17 @@ class LayoutEditor:
 
         # Monitor dropdown
         self.monitor_var = tk.StringVar()
-        self.monitor_labels = [self._monitor_label(m) for m in self.monitors]
+        self.builtin_label = "Built-in Screen"
+        self.monitor_labels = [self.builtin_label] + [self._monitor_label(m) for m in self.monitors]
         self.monitor_combo = ctk.CTkComboBox(
             toolbar, variable=self.monitor_var,
             values=self.monitor_labels, width=250, height=20, state="readonly",
             command=self._on_monitor_change, corner_radius=0, font=btn_font
         )
         self.monitor_combo.pack(side="left", padx=2)
-        # Set initial selection
-        if self.monitor_labels:
-            self.monitor_combo.set(self.monitor_labels[0])
+        # Set initial selection to built-in
+        self.monitor_combo.set(self.builtin_label)
+        self._apply_monitor(0)
 
         # Resolution preset dropdown
         self.resolution_var = tk.StringVar(value=self._current_preset())
@@ -357,18 +358,21 @@ class LayoutEditor:
     def _on_detect(self):
         """Re-detect monitors and refresh dropdown."""
         self.monitors = detect_monitors()
-        self.monitor_labels = [self._monitor_label(m) for m in self.monitors]
+        self.monitor_labels = [self.builtin_label] + [self._monitor_label(m) for m in self.monitors]
         self.monitor_combo["values"] = self.monitor_labels
-        if self.monitor_labels:
-            self.monitor_combo.current(0)
-            self._apply_monitor(0)
+        self.monitor_combo.set(self.builtin_label)
+        self._apply_monitor(0)
 
     def _on_monitor_change(self, value=None):
         selected = self.monitor_var.get()
-        for i, label in enumerate(self.monitor_labels):
-            if label == selected:
-                self._apply_monitor(i)
-                break
+        if selected == self.builtin_label:
+            self._apply_monitor(0)
+        else:
+            for i, label in enumerate(self.monitor_labels):
+                if label == selected:
+                    # +1 because built-in is at index 0
+                    self._apply_monitor(i)
+                    break
 
     def _apply_monitor(self, idx):
         m = self.monitors[idx]
@@ -463,7 +467,7 @@ class LayoutEditor:
         # Update monitor dropdown to match stored monitor
         for i, m in enumerate(self.monitors):
             if m["index"] == self.monitor:
-                self.monitor_combo.set(self.monitor_labels[i])
+                self.monitor_combo.set(self.monitor_labels[i + 1])  # +1 for built-in at index 0
                 break
 
         self._update_geometry()
